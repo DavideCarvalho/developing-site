@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #080808;
+  --color-ink-raise: #0f0f0e;
+  --color-ink-sunk: #050505;
+  --color-amber: #e8ab30;
+  --color-amber-deep: #8a6620;
+  --color-paper: #ffffff;
+  --color-paper-2: #a8a49c;
+  --color-paper-3: #6b6862;
+
+  --font-display: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+
+html { color-scheme: dark; }
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--color-amber); color: var(--color-ink); }
+:focus-visible { outline: 2px solid var(--color-amber); outline-offset: 3px; }
