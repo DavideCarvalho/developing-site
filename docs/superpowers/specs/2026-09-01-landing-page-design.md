@@ -155,9 +155,14 @@ e-mail não saiu — é o erro caro.
 
 ### Configuração
 
-**Razão social (string exata para o rodapé):** `DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LT`
+Dados institucionais confirmados, para o rodapé:
 
-Os demais valores institucionais pendentes — CNPJ, e-mail de contato, telefone, domínio — ficam
+| Campo | Valor |
+|---|---|
+| Razão social | `DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LT` |
+| CNPJ | `39.598.365/0001-03` (dígitos verificadores validados) |
+
+Os demais valores pendentes — e-mail de contato, telefone, domínio — ficam
 centralizados em um único `config/site.ts`, com placeholders explícitos até o cliente fornecer.
 Nunca espalhados pelos componentes. Trocar o CNPJ deve ser a edição de uma linha.
 
@@ -190,7 +195,6 @@ justifica quando o volume existir — não antes.
 
 Não bloqueiam o início da implementação; entram via `config/site.ts`:
 
-- CNPJ
 - E-mail de contato e telefone
 - Domínio de produção
 - Credenciais SMTP do ambiente de produção
