@@ -146,6 +146,38 @@ existe. O SSR do Inertia para Adonis cobre isso.
 > plugin do Adonis e quebra o bundle (erro em `viteMetadata`). O contorno é `configEnvironment`
 > nos dois vite configs. Já enfrentado em outro projeto da casa; tratar na implementação.
 
+### Internacionalização
+
+Dois locales, via `@adonisjs/i18n`: **`pt-BR` em `/` e `en` em `/en`**. Ambas as rotas são
+indexáveis, com `hreflang` recíproco entre elas e `lang` correto no documento. O primeiro
+acesso sem locale na URL é negociado por `Accept-Language`; a escolha explícita do usuário
+prevalece e é lembrada.
+
+**O inglês não é tradução do português.** São dois leitores diferentes:
+
+| | `pt-BR` | `en` |
+|---|---|---|
+| Quem é | comprador de projeto e arquitetura, mercado local | dev que chegou de um README de pacote |
+| O que precisa saber | que a empresa executa | quem mantém a lib e se há suporte pago |
+| Tese do hero | "Escrevemos a infraestrutura que outros times importam." | "The team behind the packages you already run." |
+| CTA primário | Enviar briefing | Get commercial support |
+| Open source | seção 5 | **seção 3** — antes dos serviços |
+| Ordem dos serviços | arquitetura, projetos, suporte | **suporte**, projetos, arquitetura |
+
+A justificativa: os 178 pacotes, seus READMEs e os dois sites de documentação são todos em
+inglês. O tráfego internacional chega pelo open source, não por busca institucional — e é
+exatamente o lead que o serviço de suporte existe para capturar. Traduzir o texto português
+ao pé da letra venderia consultoria brasileira para um dev que só queria saber se pode
+confiar na biblioteca.
+
+**Não se traduzem:** a assinatura `{dev}eloping software` (é marca), os nomes de família e
+de pacote, a razão social e o CNPJ.
+
+**Preço é único nos dois mercados.** As faixas de orçamento do formulário são as mesmas em
+real nos dois locales. Convertê-las para dólar exigiria fixar uma taxa de câmbio no código,
+que envelhece em silêncio e passaria a cobrar um preço diferente do mercado externo sem
+ninguém ter decidido isso. Real é a única fonte da verdade.
+
 ### Formulário de briefing
 
 Campos: nome, empresa, e-mail, telefone (opcional), tipo de serviço
@@ -206,8 +238,9 @@ não bloqueiam o desenvolvimento.
 
 ## Fora de escopo
 
-Deliberadamente ausentes desta entrega: blog, versão em inglês, CMS, área do cliente, painel
-administrativo dos briefings, integração com analytics, tema claro, agendamento de call.
+Deliberadamente ausentes desta entrega: blog, CMS, área do cliente, painel administrativo dos
+briefings, integração com analytics, tema claro, agendamento de call, e qualquer terceiro
+idioma além de português e inglês.
 
 A leitura dos leads na primeira versão é por acesso direto ao banco. Um painel admin se
 justifica quando o volume existir — não antes.
