@@ -13,10 +13,17 @@ completos, mantidos pela empresa, com 178 pacotes publicados no npm.**
 
 Contagem verificada contra o registry do npm em 2026-09-01 (147/147 e 31/31 publicados):
 
-| Ecossistema | Alvo | Escopo npm | Famílias | Pacotes | Docs |
-|---|---|---|---|---|---|
-| Aviary | NestJS | `@dudousxd` | 13 | 147 | https://davidecarvalho.github.io/aviary/ |
-| Agora | AdonisJS | `@adonis-agora` | 12 | 31 | https://davidecarvalho.github.io/agora/ |
+| Ecossistema | Alvo | Escopo npm | Famílias | Pacotes | Downloads/mês | Docs |
+|---|---|---|---|---|---|---|
+| Aviary | NestJS | `@dudousxd` | 13 | 147 | 146.393 | https://davidecarvalho.github.io/aviary/ |
+| Agora | AdonisJS | `@adonis-agora` | 12 | 31 | 61.367 | https://davidecarvalho.github.io/agora/ |
+
+**Total: 207.760 downloads no último mês**, 176 dos 178 pacotes com download real
+(`api.npmjs.org/downloads/point/last-month`, apurado em 2026-09-01).
+
+Downloads é a métrica principal da página, acima da contagem de pacotes: contagem mede quanto
+foi escrito, download mede quanta gente confia. É também o que a Spatie — mesma posição de
+mercado, agência que se vende pelo open source — usa como número de capa.
 
 **Famílias Aviary (13):** agent, authz, catalog, codegen, context, diagnostics, durable, filter,
 inertia, media, notifications, resilience, telescope.
@@ -87,15 +94,23 @@ Página única, oito seções, na ordem em que um comprador técnico decide:
 
 1. **Hero** — wordmark, tagline `{dev}eloping software`, headline de posicionamento, dois
    CTAs: *Enviar briefing* (primário, âmbar) e *Ver o open source* (secundário, âncora).
-2. **Barra de números** — `2 ecossistemas · 25 famílias · 178 pacotes no npm · MIT`.
+   À direita, o **manifesto**: os 178 nomes de pacote reais com downloads do mês, em rolagem
+   lenta, pausando no hover. Nome de pacote não se falsifica — é a prova mais barata que
+   existe, e é o que substitui a fileira de logos de cliente.
+   O manifesto exibe **downloads, não versão**: quarenta e tantos pacotes estão em `0.x`, e
+   uma coluna de `0.2.0` lê como "tudo alfa", enfraquecendo justamente o que a seção prova.
+   Ordenado por downloads, mas **desagrupando família** — cinco `catalog-*` seguidos leem
+   como número inflado, não como adoção.
+2. **Barra de números** — `2 ecossistemas · 25 famílias · 178 pacotes · 207.760 downloads/mês · 100% MIT`.
    Ocupa estruturalmente o lugar da fileira de logos de cliente que não existe.
 3. **Como trabalhamos** — quatro etapas: diagnóstico → especificação → construção → operação.
    Ancoradas no eixo vertical da textura da marca; cada etapa recebe um terminal geométrico
    (círculo → losango → quadrado), reaproveitando o vocabulário do asset TEXTURA.
 4. **Serviços** — os três acima, cada um com uma frase do que é entregue.
 5. **Open source** — dois blocos grandes, Aviary e Agora, cada um com suas famílias listadas
-   em mono (13 e 12), contagem de pacotes e link para os docs. É a seção de portfólio e o
-   coração da página.
+   em mono (13 e 12), contagem de pacotes, downloads do mês e link para os docs. É a seção de
+   portfólio e o coração da página. **Cada família é um link** para seus pacotes no npm
+   (`npmjs.com/search?q=<escopo>/<família>`) — pacote é conteúdo navegável, não item de lista.
 6. **Stack** — AdonisJS, NestJS, React, Inertia, TypeScript, PostgreSQL.
 7. **Briefing** — o formulário.
 8. **Rodapé** — razão social, CNPJ, contato.
@@ -198,6 +213,25 @@ no volume esperado.
 **Falha de e-mail não derruba o envio.** Se o SMTP falhar depois do commit, o lead já está
 salvo e o usuário vê sucesso; a falha vai para o log. O contrário — perder o lead porque o
 e-mail não saiu — é o erro caro.
+
+### Métricas do npm
+
+Os números de download **não podem ser escritos à mão**: cravados no código, envelhecem em
+silêncio e a página passa a mentir. São buscados de `api.npmjs.org/downloads/point/last-month`
+por pacote e agregados por ecossistema.
+
+**Estratégia:** job agendado diário grava o agregado numa tabela `npm_metrics`
+(`scope`, `package`, `downloads`, `fetched_at`); a renderização lê sempre do banco, nunca da
+API. A página não depende da rede do npm para responder.
+
+**A API responde 429 ao consultar os 178 pacotes de uma vez.** Apurar o número exigiu retry
+com backoff e ainda assim um pacote não resolveu. Portanto o job precisa de: concorrência
+limitada, backoff exponencial no 429, e tolerância a resultado parcial — um pacote que falhou
+mantém o último valor conhecido em vez de virar zero.
+
+**Degradação:** se a tabela estiver vazia (primeiro deploy, job nunca rodou), a página omite
+a métrica de download inteira em vez de mostrar zero. Contagem de pacotes e de famílias são
+estáticas e sempre aparecem.
 
 ### Rotas
 
