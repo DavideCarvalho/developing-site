@@ -9,11 +9,12 @@ type Deps = {
   backoffMs?: number
   sleep?: (ms: number, signal?: AbortSignal) => Promise<void>
   signal?: AbortSignal
+  maxAttempts?: number
 }
 
 const AVIARY_SCOPE = '@dudousxd'
 const CONCURRENCY = 6
-const MAX_ATTEMPTS = 7
+const DEFAULT_MAX_ATTEMPTS = 6
 const MAX_BACKOFF_MS = 10_000
 
 async function fetchDownloads(fullName: string): Promise<number> {
@@ -52,12 +53,23 @@ export default class NpmDownloadsService {
   #backoffMs: number
   #sleep: (ms: number, signal?: AbortSignal) => Promise<void>
   #signal?: AbortSignal
+  #maxAttempts: number
 
   constructor(deps: Deps = {}) {
     this.#fetch = deps.fetch ?? fetchDownloads
     this.#backoffMs = deps.backoffMs ?? 800
     this.#sleep = deps.sleep ?? sleep
     this.#signal = deps.signal
+    this.#maxAttempts = deps.maxAttempts ?? DEFAULT_MAX_ATTEMPTS
+  }
+
+  /**
+   * Exposto só para verificação (ex.: confirmar em teste que o default de
+   * produção realmente é 6, lendo da instância construída em vez do
+   * valor hardcoded em algum lugar).
+   */
+  get maxAttempts(): number {
+    return this.#maxAttempts
   }
 
   /**
@@ -85,7 +97,7 @@ export default class NpmDownloadsService {
         const fullName = `${pkg.scope}/${pkg.packageName}`
         let saved = false
 
-        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        for (let attempt = 1; attempt <= this.#maxAttempts; attempt++) {
           if (this.#signal?.aborted) return
 
           try {
@@ -102,7 +114,7 @@ export default class NpmDownloadsService {
           } catch (error) {
             const retryable =
               (error as { status?: number }).status === 429 || !('status' in (error as object))
-            if (!retryable || attempt === MAX_ATTEMPTS) break
+            if (!retryable || attempt === this.#maxAttempts) break
 
             const delay = Math.min(this.#backoffMs * 2 ** (attempt - 1), MAX_BACKOFF_MS)
             try {

@@ -78,6 +78,13 @@ test.group('NpmDownloadsService', (group) => {
     assert.equal(row.downloads, 42)
   })
 
+  test('o default de produção de maxAttempts é 6', async ({ assert }) => {
+    // Lido da instância construída (o getter), não da constante do módulo —
+    // é a instância, não o código-fonte, que a produção de fato usa.
+    const service = new NpmDownloadsService()
+    assert.equal(service.maxAttempts, 6)
+  })
+
   test('backoff é exponencial e tem teto em 10s', async ({ assert }) => {
     // Injeta `sleep` para capturar os delays que o código pede, em vez de
     // esperá-los de verdade — mas usa o backoffMs *real* de produção (não
@@ -85,6 +92,12 @@ test.group('NpmDownloadsService', (group) => {
     // a fórmula de verdade. Se a fórmula voltar a ser linear
     // (backoffMs * attempt em vez de backoffMs * 2**(attempt-1)), a
     // sequência capturada muda e o assert.deepEqual abaixo falha.
+    //
+    // maxAttempts:7 é só para este teste observar seis esperas (N tentativas
+    // produzem N-1 esperas, já que o loop desiste sem dormir na última) e
+    // assim provar que o teto se repete, não só dispara uma vez por acaso.
+    // O default de produção continua 6 (~22s de pior caso), verificado no
+    // teste anterior — não foi alterado para acomodar este teste.
     const delays: number[] = []
     const service = new NpmDownloadsService({
       fetch: async () => {
@@ -93,6 +106,7 @@ test.group('NpmDownloadsService', (group) => {
       sleep: async (ms: number) => {
         delays.push(ms)
       },
+      maxAttempts: 7,
     })
 
     await service.sync([{ scope: '@dudousxd', packageName: 'nestjs-telescope' }])
