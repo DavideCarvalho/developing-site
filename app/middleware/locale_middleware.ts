@@ -51,7 +51,10 @@ export default class LocaleMiddleware {
       // / só negocia: nunca grava o cookie num render comum, senão suprime
       // permanentemente a negociação por Accept-Language de quem cai aqui pela
       // primeira vez.
-      const cookie = ctx.request.cookie('locale') as Locale | undefined
+      const rawCookie = ctx.request.cookie('locale')
+      // Um cookie fora da lista suportada ('fr', 'en-GB', lixo) não conta como
+      // escolha: é tratado como se não houvesse cookie, e a negociação roda normal.
+      const cookie = isSupported(rawCookie) ? rawCookie : undefined
       if (cookie === 'en') {
         return ctx.response.redirect('/en')
       }

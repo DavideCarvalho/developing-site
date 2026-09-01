@@ -78,4 +78,17 @@ test.group('Locale', () => {
     assert.include(response.text(), 'Escrevemos a infraestrutura que outros times importam.')
     response.assertCookieMissing('locale')
   })
+
+  test('um cookie de locale não suportado é ignorado e a negociação roda normal', async ({
+    client,
+  }) => {
+    const response = await client
+      .get('/')
+      .header('Accept-Language', 'en-US')
+      .withCookie('locale', 'fr')
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/en')
+  })
 })
