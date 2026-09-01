@@ -5,7 +5,7 @@ O plano de implementação é um documento separado.
 
 ## Contexto
 
-DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LTDA é uma consultoria de arquitetura e
+DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LT é uma consultoria de arquitetura e
 desenvolvimento de software. Não há cases de cliente, logos ou time para exibir.
 
 O que existe, e é mais forte do que qualquer um dos três: **dois ecossistemas open source
@@ -155,7 +155,9 @@ e-mail não saiu — é o erro caro.
 
 ### Configuração
 
-Valores institucionais pendentes — CNPJ, e-mail de contato, telefone, domínio — ficam
+**Razão social (string exata para o rodapé):** `DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LT`
+
+Os demais valores institucionais pendentes — CNPJ, e-mail de contato, telefone, domínio — ficam
 centralizados em um único `config/site.ts`, com placeholders explícitos até o cliente fornecer.
 Nunca espalhados pelos componentes. Trocar o CNPJ deve ser a edição de uma linha.
 
@@ -188,7 +190,7 @@ justifica quando o volume existir — não antes.
 
 Não bloqueiam o início da implementação; entram via `config/site.ts`:
 
-- CNPJ e razão social exata para o rodapé
+- CNPJ
 - E-mail de contato e telefone
 - Domínio de produção
 - Credenciais SMTP do ambiente de produção
