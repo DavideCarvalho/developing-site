@@ -1,31 +1,85 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import type { NextFn } from '@adonisjs/core/types/http'
-import type { I18n } from '@adonisjs/i18n'
+import { I18n } from '@adonisjs/i18n'
 import i18nManager from '@adonisjs/i18n/services/main'
+import type { NextFn } from '@adonisjs/core/types/http'
+import { type HttpContext, RequestValidator } from '@adonisjs/core/http'
 
 const SUPPORTED = ['pt-BR', 'en'] as const
 export type Locale = (typeof SUPPORTED)[number]
 
-export default class LocaleMiddleware {
-  async handle(ctx: HttpContext, next: NextFn, options: { locale?: Locale } = {}) {
-    // A rota manda: /en é inglês, / é português.
-    let locale: Locale = options.locale ?? 'pt-BR'
+const CANONICAL_PATH: Record<Locale, string> = {
+  'pt-BR': '/',
+  'en': '/en',
+}
 
-    // Só a raiz negocia. Se o visitante já escolheu antes, a escolha vence.
-    if (!options.locale) {
-      const chosen = ctx.request.cookie('locale') as Locale | undefined
-      if (chosen && SUPPORTED.includes(chosen)) {
-        locale = chosen
-      } else {
+function isSupported(value: unknown): value is Locale {
+  return typeof value === 'string' && (SUPPORTED as readonly string[]).includes(value)
+}
+
+export default class LocaleMiddleware {
+  /**
+   * Using i18n for validation messages. Applicable to only
+   * "request.validateUsing" method calls.
+   */
+  static {
+    RequestValidator.messagesProvider = (ctx) => {
+      return ctx.i18n.createMessagesProvider()
+    }
+  }
+
+  async handle(ctx: HttpContext, next: NextFn, options: { locale?: Locale } = {}) {
+    // A rota é a única autoridade sobre o que renderiza. O cookie só decide se
+    // a raiz redireciona; ele nunca troca o idioma que uma URL entrega.
+    const routeLocale = options.locale
+
+    // Troca explícita: ?lang=pt-BR (ou ?lang=en) grava o cookie e redireciona
+    // para a URL canônica sem o query param.
+    const requestedLang = ctx.request.qs().lang
+    if (isSupported(requestedLang)) {
+      ctx.response.cookie('locale', requestedLang)
+      // A app força forwardQueryString por padrão (config/app.ts); aqui a URL
+      // canônica precisa ficar limpa, sem o ?lang= de volta.
+      return ctx.response.redirect().withQs(false).toPath(CANONICAL_PATH[requestedLang])
+    }
+
+    let locale: Locale
+
+    if (routeLocale) {
+      // /en é sempre inglês, e confirma a escolha via cookie para próximas visitas.
+      locale = routeLocale
+      ctx.response.cookie('locale', locale)
+    } else {
+      // / só negocia: nunca grava o cookie num render comum, senão suprime
+      // permanentemente a negociação por Accept-Language de quem cai aqui pela
+      // primeira vez.
+      const cookie = ctx.request.cookie('locale') as Locale | undefined
+      if (cookie === 'en') {
+        return ctx.response.redirect('/en')
+      }
+      if (!cookie) {
         const negotiated = ctx.request.language([...SUPPORTED])
         if (negotiated === 'en') {
           return ctx.response.redirect('/en')
         }
       }
+      locale = 'pt-BR'
     }
 
     ctx.i18n = i18nManager.locale(locale)
     ctx.locale = locale
+
+    /**
+     * Binding I18n class to the request specific instance of it, so it can be
+     * resolved by the IoC container elsewhere in the request lifecycle.
+     */
+    ctx.containerResolver.bindValue(I18n, ctx.i18n)
+
+    /**
+     * Sharing the request specific instance of i18n with Edge templates.
+     */
+    if ('view' in ctx) {
+      ctx.view.share({ i18n: ctx.i18n })
+    }
+
     return next()
   }
 }

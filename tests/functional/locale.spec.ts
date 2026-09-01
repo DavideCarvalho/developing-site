@@ -35,4 +35,47 @@ test.group('Locale', () => {
 
     response.assertStatus(200)
   })
+
+  test('o documento anuncia o lang correto por locale', async ({ client, assert }) => {
+    const pt = await client.get('/')
+    assert.include(pt.text(), 'lang="pt-BR"')
+
+    const en = await client.get('/en')
+    assert.include(en.text(), 'lang="en"')
+  })
+
+  test('/en grava o cookie de locale', async ({ client }) => {
+    const response = await client.get('/en')
+    response.assertCookie('locale', 'en')
+  })
+
+  test('a raiz com cookie en redireciona para /en em vez de renderizar inglês', async ({
+    client,
+  }) => {
+    const response = await client.get('/').withCookie('locale', 'en').redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/en')
+  })
+
+  test('/?lang=pt-BR grava o cookie e redireciona para a raiz sem o query param', async ({
+    client,
+  }) => {
+    const response = await client.get('/?lang=pt-BR').redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/')
+    response.assertCookie('locale', 'pt-BR')
+  })
+
+  test('a raiz nunca renderiza inglês: um render comum não grava o cookie', async ({
+    client,
+    assert,
+  }) => {
+    const response = await client.get('/')
+
+    response.assertStatus(200)
+    assert.include(response.text(), 'Escrevemos a infraestrutura que outros times importam.')
+    response.assertCookieMissing('locale')
+  })
 })
