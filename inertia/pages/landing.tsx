@@ -1,32 +1,47 @@
-import type { SiteConfig } from '#config/site'
+import Hero from '~/components/hero'
+import ManifestBar from '~/components/manifest_bar'
+import Nav from '~/components/nav'
+import OpenSource from '~/components/open_source'
+import Process from '~/components/process'
+import Services from '~/components/services'
+import SiteFooter from '~/components/site_footer'
+import Stack from '~/components/stack'
+import { useLocale } from '~/lib/i18n'
+import { useLandingMotion } from '~/lib/motion'
 
-type Locale = 'pt-BR' | 'en'
+/**
+ * A ordem das seções muda por locale. O português conduz pela metodologia
+ * (processo → serviços → open source); o inglês entrega a prova primeiro
+ * (open source → serviços → processo), porque quem chega em inglês veio de um
+ * README de pacote. O DOM sai já na ordem certa — é o que a leitura por
+ * teclado e por buscador enxerga — e o `order` do CSS (app.css) é o que
+ * garante o arranjo visual do flex column.
+ */
+export default function Landing() {
+  const locale = useLocale()
+  useLandingMotion()
 
-type Alternate = {
-  locale: string
-  href: string
-}
+  const process = <Process key="processo" />
+  const services = <Services key="servicos" />
+  const openSource = <OpenSource key="oss" />
 
-type LandingProps = {
-  site: SiteConfig
-  locale: Locale
-  messages: Record<string, string>
-  alternate: Alternate[]
-}
-
-export default function Landing({ site, messages }: LandingProps) {
   return (
-    <main>
-      <p className="font-display font-extrabold">
-        <span className="text-amber">{'{'}</span>dev
-        <span className="text-amber">{'}'}</span>eloping software
-      </p>
-      <h1>{messages['hero.h1']}</h1>
-      <footer className="font-mono text-paper-3">
-        {site.legalName}
-        <br />
-        CNPJ {site.cnpj}
-      </footer>
-    </main>
+    <>
+      <div className="axis">
+        <div className="axis-fill" id="axisFill" />
+      </div>
+
+      <Nav />
+
+      <main id="top" className={locale === 'en' ? 'en' : undefined}>
+        <Hero />
+        <ManifestBar />
+        {locale === 'en' ? [openSource, services, process] : [process, services, openSource]}
+        <Stack />
+        {/* Task 7 troca esta âncora pela seção de briefing. */}
+        <div className="blk-briefing" id="briefing" />
+        <SiteFooter />
+      </main>
+    </>
   )
 }

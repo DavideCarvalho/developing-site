@@ -4,13 +4,16 @@ type ParamValue = string | number | bigint | boolean
 
 export type ScannedRoutes = {
   ALL: {
-    'landing': { paramsTuple?: []; params?: {} }
+    'landing.pt': { paramsTuple?: []; params?: {} }
+    'landing.en': { paramsTuple?: []; params?: {} }
   }
   GET: {
-    'landing': { paramsTuple?: []; params?: {} }
+    'landing.pt': { paramsTuple?: []; params?: {} }
+    'landing.en': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
-    'landing': { paramsTuple?: []; params?: {} }
+    'landing.pt': { paramsTuple?: []; params?: {} }
+    'landing.en': { paramsTuple?: []; params?: {} }
   }
 }
 declare module '@adonisjs/core/types/http' {

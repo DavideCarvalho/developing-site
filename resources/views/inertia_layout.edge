@@ -18,6 +18,9 @@
     @viteReactRefresh()
     @vite(['inertia/app/app.tsx', 'resources/css/app.css'])
     @inertiaHead()
+
+    {{-- Sem JS o IntersectionObserver nunca marca .rise como visível. --}}
+    <noscript><style>.rise{opacity:1;transform:none}</style></noscript>
     @stack('dumper')
   </head>
 
