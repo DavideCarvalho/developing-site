@@ -31,7 +31,7 @@
   | `@adonisjs/shield` | 9.0.0 | | `@japa/plugin-adonisjs` | 5.2.0 |
   | `@adonisjs/assembler` | 8.5.0 | | `@japa/api-client` | 3.2.1 |
   | `@vinejs/vine` | 4.4.0 | | `typescript` | **6.0.3** |
-  | `@adonisjs/queue` | 0.6.2 | | `@adonisjs/api-client` | via japa |
+  | `@adonisjs/queue` | 0.6.2 | | `pg` | 8.23.0 |
 
 - **`@adonisjs/queue` é o único pacote abaixo de 1.0** (0.6.2). É ele que fornece a classe
   `Job` e o agendamento da Task 5. Pré-1.0 significa que a API pode mudar sem major: se ela
@@ -269,7 +269,7 @@ export default defineConfig({
 })
 ```
 
-`vite.config.ts` — manter `vite` em 7.3.1:
+`vite.config.ts`:
 
 ```ts
 import { defineConfig } from 'vite'
