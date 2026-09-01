@@ -31,7 +31,11 @@
   | `@adonisjs/shield` | 9.0.0 | | `@japa/plugin-adonisjs` | 5.2.0 |
   | `@adonisjs/assembler` | 8.5.0 | | `@japa/api-client` | 3.2.1 |
   | `@vinejs/vine` | 4.4.0 | | `typescript` | **6.0.3** |
+  | `@adonisjs/queue` | 0.6.2 | | `@adonisjs/api-client` | via japa |
 
+- **`@adonisjs/queue` é o único pacote abaixo de 1.0** (0.6.2). É ele que fornece a classe
+  `Job` e o agendamento da Task 5. Pré-1.0 significa que a API pode mudar sem major: se ela
+  divergir do que a Task 5 escreve, trocar o job por um `ace command` chamado por cron externo.
 - **TypeScript fica em 6.0.3, não em 7.0.2.** O npm publica 7.0.2 como `latest`, mas
   `@adonisjs/assembler` 8.5.0 declara `typescript: "^5.0.0 || ^6.0.0"` como peer dependency —
   o 7 está fora da faixa. O assembler é quem compila e faz o build, então isso quebra, não
@@ -412,37 +416,28 @@ export default defineConfig({
 })
 ```
 
-- [ ] **Step 4: Criar os arquivos de tradução**
+- [ ] **Step 4: NÃO criar os arquivos de tradução — eles já existem**
 
-`resources/lang/pt-BR/site.json` — apenas as chaves do hero nesta task; as demais entram na Task 4:
+`resources/lang/pt-BR/site.json` e `resources/lang/en/site.json` **já estão versionados**,
+com as 82 chaves da copy aprovada. Não sobrescrever, não reduzir, não reescrever.
 
-```json
-{
-  "hero.headline": "Escrevemos a infraestrutura que outros times importam.",
-  "hero.cta_primary": "Enviar briefing",
-  "hero.cta_secondary": "Ver o open source",
-  "nav.process": "Como trabalhamos",
-  "nav.services": "Serviços",
-  "nav.oss": "Open source",
-  "nav.cta": "Enviar briefing"
-}
+As duas strings que o teste desta task asserta já estão lá, sob a chave `hero.h1` nos dois
+idiomas. Confirmar antes de seguir:
+
+```bash
+node -e "const a=require('./resources/lang/pt-BR/site.json'),b=require('./resources/lang/en/site.json');console.log(a['hero.h1']);console.log(b['hero.h1']);console.log(Object.keys(a).length+' chaves')"
 ```
 
-`resources/lang/en/site.json`:
+Esperado:
 
-```json
-{
-  "hero.headline": "The team behind the packages you already run.",
-  "hero.cta_primary": "Get commercial support",
-  "hero.cta_secondary": "Browse the packages",
-  "nav.process": "How we work",
-  "nav.services": "Services",
-  "nav.oss": "Open source",
-  "nav.cta": "Talk to us"
-}
+```
+Escrevemos a infraestrutura que outros times importam.
+The team behind the packages you already run.
+82 chaves
 ```
 
-O inglês não é tradução: é outro leitor. Ver a tabela de ênfase por locale no spec antes de escrever qualquer string nova.
+O inglês não é tradução: é outro leitor. Ver a tabela de ênfase por locale no spec antes de
+escrever qualquer string nova.
 
 - [ ] **Step 5: Criar o middleware de locale**
 
@@ -542,10 +537,13 @@ export default class LandingController {
 
 `resources/views/inertia_layout.edge`, dentro do `<head>`:
 
+A root view do Inertia recebe o objeto `page`; `site` não é variável de topo e renderizaria
+vazio. Acessar pelas props:
+
 ```edge
-<link rel="alternate" hreflang="pt-BR" href="{{ site.domain }}/" />
-<link rel="alternate" hreflang="en" href="{{ site.domain }}/en" />
-<link rel="alternate" hreflang="x-default" href="{{ site.domain }}/" />
+<link rel="alternate" hreflang="pt-BR" href="{{ page.props.site.domain }}/" />
+<link rel="alternate" hreflang="en" href="{{ page.props.site.domain }}/en" />
+<link rel="alternate" hreflang="x-default" href="{{ page.props.site.domain }}/" />
 ```
 
 - [ ] **Step 10: Rodar e confirmar que passa**
@@ -877,9 +875,10 @@ test.group('NpmDownloadsService', (group) => {
 Run: `node ace test unit --files=npm_downloads.spec.ts`
 Esperado: FAIL — módulo `#services/npm_downloads_service` não existe.
 
-- [ ] **Step 3: Criar a migration**
+- [ ] **Step 3: Instalar o queue e criar a migration**
 
 ```bash
+node ace add @adonisjs/queue
 node ace make:migration create_npm_metrics_table
 ```
 
@@ -1409,11 +1408,16 @@ O quarto teste é o mais importante: perder lead porque o e-mail não saiu é o 
 Run: `node ace test functional --files=briefing.spec.ts`
 Esperado: FAIL — rota `/briefing` inexistente.
 
-- [ ] **Step 3: Criar a migration**
+- [ ] **Step 3: Instalar mail e limiter, e criar a migration**
 
 ```bash
+node ace add @adonisjs/mail
+node ace add @adonisjs/limiter
 node ace make:migration create_briefings_table
 ```
+
+O `node ace add @adonisjs/limiter` cria `start/limiter.ts`; o Step 8 edita esse arquivo em
+vez de criá-lo do zero.
 
 ```ts
 import { BaseSchema } from '@adonisjs/lucid/schema'
