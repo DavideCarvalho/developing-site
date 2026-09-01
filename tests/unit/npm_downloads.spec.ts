@@ -77,4 +77,99 @@ test.group('NpmDownloadsService', (group) => {
     const row = await NpmMetric.findByOrFail('packageName', 'nestjs-telescope')
     assert.equal(row.downloads, 42)
   })
+
+  test('backoff é exponencial e tem teto em 10s', async ({ assert }) => {
+    // Injeta `sleep` para capturar os delays que o código pede, em vez de
+    // esperá-los de verdade — mas usa o backoffMs *real* de produção (não
+    // passado aqui, então cai no default de 800), para que este teste pinne
+    // a fórmula de verdade. Se a fórmula voltar a ser linear
+    // (backoffMs * attempt em vez de backoffMs * 2**(attempt-1)), a
+    // sequência capturada muda e o assert.deepEqual abaixo falha.
+    const delays: number[] = []
+    const service = new NpmDownloadsService({
+      fetch: async () => {
+        throw Object.assign(new Error('429'), { status: 429 })
+      },
+      sleep: async (ms: number) => {
+        delays.push(ms)
+      },
+    })
+
+    await service.sync([{ scope: '@dudousxd', packageName: 'nestjs-telescope' }])
+
+    assert.deepEqual(delays, [800, 1600, 3200, 6400, 10000, 10000])
+  })
+
+  test('404 não repete — não queima tentativas com pacote inexistente', async ({ assert }) => {
+    let calls = 0
+    const service = new NpmDownloadsService({
+      fetch: async () => {
+        calls++
+        throw Object.assign(new Error('404'), { status: 404 })
+      },
+    })
+
+    const result = await service.sync([{ scope: '@dudousxd', packageName: 'nestjs-inexistente' }])
+
+    assert.equal(calls, 1, 'um 404 não é retryable — uma tentativa só')
+    assert.deepEqual(result.failed, ['@dudousxd/nestjs-inexistente'])
+  })
+
+  test('concorrência nunca passa de 6 fetches simultâneos', async ({ assert }) => {
+    const packages = Array.from({ length: 24 }, (_, i) => ({
+      scope: '@dudousxd',
+      packageName: `pkg-${i}`,
+    }))
+
+    let inFlight = 0
+    let maxInFlight = 0
+    const service = new NpmDownloadsService({
+      fetch: async () => {
+        inFlight++
+        maxInFlight = Math.max(maxInFlight, inFlight)
+        await new Promise((r) => setTimeout(r, 15))
+        inFlight--
+        return 1
+      },
+    })
+
+    await service.sync(packages)
+
+    assert.isAtMost(maxInFlight, 6, 'nunca deve haver mais de 6 fetches em voo ao mesmo tempo')
+    assert.equal(
+      maxInFlight,
+      6,
+      'deve de fato usar toda a concorrência disponível (24 pacotes, 6 workers)'
+    )
+  })
+
+  test('aborta no meio do backoff: para sem tentar de novo e sem escrever', async ({ assert }) => {
+    const controller = new AbortController()
+    let fetchCalls = 0
+
+    // Usa o `sleep` real (não injetado) — este teste precisa exercitar o
+    // cancelamento de verdade, não uma versão mockada dele.
+    const service = new NpmDownloadsService({
+      fetch: async () => {
+        fetchCalls++
+        // A 2ª tentativa teria sucesso — só não deve nunca acontecer.
+        if (fetchCalls === 1) throw Object.assign(new Error('429'), { status: 429 })
+        return 42
+      },
+      backoffMs: 500,
+      signal: controller.signal,
+    })
+
+    const syncPromise = service.sync([{ scope: '@dudousxd', packageName: 'nestjs-telescope' }])
+
+    // Dá tempo da 1ª tentativa falhar e entrar na espera de backoff antes
+    // de abortar no meio dela.
+    await new Promise((r) => setTimeout(r, 20))
+    controller.abort()
+    await syncPromise
+
+    assert.equal(fetchCalls, 1, 'não deve tentar de novo depois do abort')
+    const row = await NpmMetric.findBy('packageName', 'nestjs-telescope')
+    assert.isNull(row, 'não deve escrever nada depois do abort')
+  })
 })
