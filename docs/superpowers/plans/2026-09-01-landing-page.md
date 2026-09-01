@@ -14,8 +14,36 @@
 
 - **AdonisJS 7, não 6.** O spec diz "AdonisJS 6"; está desatualizado. Toda a casa (`imob-analytics`, `prondeuvou`, `anua-v2`) roda `@adonisjs/core` 7. Seguir o 7.
 - **Versões fixas, sem `^` nem `~`**, em todo `package.json`.
-- **Versões exatas a usar:** `@adonisjs/core` 7.0.1 · `@adonisjs/inertia` 4.1.0 · `@adonisjs/i18n` 3.0.0 · `@adonisjs/lucid` 22.1.1 · `@adonisjs/vite` 5.1.0 · `@adonisjs/mail` 10.0.0 · `@adonisjs/limiter` 3.0.0 · `@vinejs/vine` 4.3.0 · `vite` 7.3.1 · `tailwindcss` 4.2.1 · `react` 19.2.4 · `@japa/runner` 4.4.0 · `@japa/assert` 4.1.1 · `@japa/plugin-adonisjs` 5.1.0 · `typescript` 5.9.3.
-- **Não subir para Vite 8.** No Vite 8 o `app.css` com `@font-face` vaza para o build de SSR pelo plugin do Adonis e quebra o bundle com erro em `viteMetadata`. Se a subida for inevitável, o contorno é `configEnvironment` nos dois vite configs.
+- **Node 24 ou superior.** Todo pacote Adonis atual declara `engines.node >= 24.0.0`.
+- **Versões exatas a usar** — resolvidas contra o registry em 2026-09-01, tudo na mais recente
+  compatível entre si:
+
+  | Pacote | Versão | | Pacote | Versão |
+  |---|---|---|---|---|
+  | `@adonisjs/core` | 7.5.0 | | `vite` | 8.2.2 |
+  | `@adonisjs/inertia` | 5.0.1 | | `@vitejs/plugin-react` | 6.1.1 |
+  | `@adonisjs/vite` | 6.0.2 | | `@inertiajs/react` | 3.7.0 |
+  | `@adonisjs/i18n` | 3.0.1 | | `react` / `react-dom` | 19.2.8 |
+  | `@adonisjs/lucid` | 22.4.2 | | `tailwindcss` | 4.3.3 |
+  | `@adonisjs/mail` | 10.4.0 | | `@tailwindcss/vite` | 4.3.3 |
+  | `@adonisjs/limiter` | 3.0.1 | | `@japa/runner` | 5.3.0 |
+  | `@adonisjs/session` | 8.1.0 | | `@japa/assert` | 4.2.0 |
+  | `@adonisjs/shield` | 9.0.0 | | `@japa/plugin-adonisjs` | 5.2.0 |
+  | `@adonisjs/assembler` | 8.5.0 | | `@japa/api-client` | 3.2.1 |
+  | `@vinejs/vine` | 4.4.0 | | `typescript` | **6.0.3** |
+
+- **TypeScript fica em 6.0.3, não em 7.0.2.** O npm publica 7.0.2 como `latest`, mas
+  `@adonisjs/assembler` 8.5.0 declara `typescript: "^5.0.0 || ^6.0.0"` como peer dependency —
+  o 7 está fora da faixa. O assembler é quem compila e faz o build, então isso quebra, não
+  apenas avisa. 6.0.3 é a maior compatível e é contra ela que o próprio Adonis desenvolve
+  (`@adonisjs/core` a traz em devDependencies). Reavaliar quando o assembler abrir o `^7`.
+
+- **Vite 8 é obrigatório, e o bug de CSS no SSR tem que ser tratado.** `@adonisjs/inertia`
+  5.0.1 exige `vite ^8.2.2`; não há a opção de ficar no 7. No Vite 8, o CSS de entrada
+  registrado pelo plugin do Adonis vaza para o build de SSR e quebra o bundle com erro em
+  `viteMetadata`. Duas defesas, ambas obrigatórias: **(a)** nenhuma `@font-face` no
+  `app.css` — as fontes entram por `<link>` na view (Task 1, Step 7); **(b)** um guard de
+  `configEnvironment` fixando a entrada do ambiente `ssr` (Task 1, Step 11).
 - **Sem import dinâmico dentro de callback de scheduler.** Jobs são importados estaticamente no topo de `start/scheduler.ts`.
 - **Paleta fechada em três cores.** `--ink #080808`, `--amber #E8AB30`, `--paper #FFFFFF`. Nenhuma cor nova.
 - **Âmbar é escasso.** Só CTA primário, número em destaque, estado ativo e hover de link. Nunca em seletor de idioma, borda decorativa ou fundo de seção.
@@ -53,14 +81,18 @@ Responder: sobrescrever nada fora de `Logo, Nome, Textura/` e `docs/`. Se o inst
 
 - [ ] **Step 2: Fixar todas as versões sem caret**
 
-Editar `package.json` trocando cada `^x.y.z` / `~x.y.z` pelos valores exatos listados em Global Constraints, então:
+Editar `package.json` trocando cada `^x.y.z` / `~x.y.z` pelos valores exatos da tabela em
+Global Constraints — sem caret, sem til. Atenção ao `typescript`: **6.0.3**, não o `latest`
+do npm, pelo motivo registrado lá.
 
 ```bash
+node --version                 # precisa ser >= 24
 rm -rf node_modules package-lock.json && npm install
 npx tsc --noEmit
 ```
 
-Esperado: sem erro de tipo.
+Esperado: instalação sem `EPEERINVALID` e sem erro de tipo. Se o npm reclamar de peer
+dependency do TypeScript, é porque alguém subiu para o 7 — voltar para 6.0.3.
 
 - [ ] **Step 3: Escrever o teste que falha**
 
@@ -242,6 +274,21 @@ import react from '@vitejs/plugin-react'
 import adonisjs from '@adonisjs/vite/client'
 import tailwindcss from '@tailwindcss/vite'
 
+/**
+ * No Vite 8, o `resources/css/app.css` que o plugin do Adonis registra como
+ * entrypoint vaza para o build de SSR e o quebra com erro em `viteMetadata`.
+ * O ambiente `ssr` só pode ter uma entrada: o próprio ssr.tsx.
+ */
+const ssrCssGuard = {
+  name: 'developing:ssr-css-guard',
+  configEnvironment(name: string, config: any) {
+    if (name !== 'ssr') return
+    config.build ??= {}
+    config.build.rollupOptions ??= {}
+    config.build.rollupOptions.input = ['inertia/app/ssr.tsx']
+  },
+}
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -251,6 +298,7 @@ export default defineConfig({
       entrypoints: ['inertia/app/app.tsx', 'resources/css/app.css'],
       reload: ['resources/views/**/*.edge'],
     }),
+    ssrCssGuard,
   ],
   resolve: {
     alias: {
@@ -1706,14 +1754,14 @@ const orgJsonLd = {
 - [ ] **Step 7: Escrever o Dockerfile**
 
 ```dockerfile
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN node ace build
 
-FROM node:22-alpine
+FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
@@ -1731,7 +1779,14 @@ npx tsc --noEmit
 node ace build
 ```
 
-Esperado: todos os testes passam, sem erro de tipo, build conclui. Conferir que `build/` contém o bundle de SSR.
+Esperado: todos os testes passam, sem erro de tipo, build conclui.
+
+```bash
+test -f build/ssr/ssr.js && echo "bundle de SSR presente"
+```
+
+Se o build falhar com erro mencionando `viteMetadata`, o guard de `configEnvironment` do
+Step 11 da Task 1 não está ativo, ou alguém colocou `@font-face` de volta no `app.css`.
 
 - [ ] **Step 9: Commit**
 
