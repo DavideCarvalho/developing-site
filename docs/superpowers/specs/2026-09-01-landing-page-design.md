@@ -48,6 +48,27 @@ otimizada para esse leitor: técnico, cético, com poder de compra.
 Consequência: **a própria página é a prova**. Se ela for medíocre, contradiz a tese. Isso
 eleva a régua de execução visual — a qualidade do build é argumento de venda, não enfeite.
 
+## Voz da marca — o dispositivo das chaves
+
+O wordmark já carrega o trocadilho: `{dev}eloping`. As chaves âmbar isolam uma palavra
+escondida dentro de outra. Isso é um dispositivo de marca, não um logotipo estático, e a
+página o usa **uma vez**.
+
+**Aplicação única — tagline do hero, logo abaixo do wordmark:**
+
+> `{dev}eloping software`
+
+O objeto é intercambiável em uma linha (`software` / `produtos` / `times`); o padrão é
+`software`. As chaves recebem o âmbar, o resto fica em branco, exatamente como no wordmark.
+
+**Regra: nenhum outro uso na página.** Sem tratamento de chaves em títulos de seção, sem
+substring destacada em palavras portuguesas, sem repetição no rodapé.
+
+O motivo é o mesmo do âmbar: usado uma vez, é assinatura; usado em toda seção, vira piada
+repetida e desloca a página de "engenharia séria" para "agência engraçadinha" — o oposto
+exato do que 178 pacotes publicados compram em credibilidade. A escassez é o que faz a
+única aparição valer.
+
 ## Serviços
 
 Três ofertas, nesta ordem:
@@ -64,8 +85,8 @@ libs tem um caminho comercial de suporte, e quem contrata suporte já conhece a 
 
 Página única, oito seções, na ordem em que um comprador técnico decide:
 
-1. **Hero** — wordmark, headline de posicionamento, dois CTAs: *Enviar briefing* (primário,
-   âmbar) e *Ver o open source* (secundário, âncora).
+1. **Hero** — wordmark, tagline `{dev}eloping software`, headline de posicionamento, dois
+   CTAs: *Enviar briefing* (primário, âmbar) e *Ver o open source* (secundário, âncora).
 2. **Barra de números** — `2 ecossistemas · 25 famílias · 178 pacotes no npm · MIT`.
    Ocupa estruturalmente o lugar da fileira de logos de cliente que não existe.
 3. **Como trabalhamos** — quatro etapas: diagnóstico → especificação → construção → operação.
