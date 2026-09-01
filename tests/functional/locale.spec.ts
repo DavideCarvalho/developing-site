@@ -4,13 +4,21 @@ test.group('Locale', () => {
   test('a raiz entrega português', async ({ client, assert }) => {
     const response = await client.get('/')
     response.assertStatus(200)
-    assert.include(response.text(), 'Escrevemos a infraestrutura que outros times importam.')
+    // Assertar só a frase pegaria o blob de props do Inertia, onde a copy
+    // inteira viaja como JSON independentemente do que foi renderizado no
+    // DOM: a marcação do h1 só existe se a tradução foi de fato renderizada.
+    assert.include(
+      response.text(),
+      '<h1>Escrevemos a infraestrutura que outros times importam.</h1>'
+    )
   })
 
   test('/en entrega inglês', async ({ client, assert }) => {
     const response = await client.get('/en')
     response.assertStatus(200)
-    assert.include(response.text(), 'The team behind the packages you already run.')
+    // Mesmo cuidado: assertar a marcação renderizada, não a frase solta que
+    // também aparece no JSON de props.
+    assert.include(response.text(), '<h1>The team behind the packages you already run.</h1>')
   })
 
   test('cada locale aponta hreflang para o outro', async ({ client, assert }) => {
@@ -75,7 +83,10 @@ test.group('Locale', () => {
     const response = await client.get('/')
 
     response.assertStatus(200)
-    assert.include(response.text(), 'Escrevemos a infraestrutura que outros times importam.')
+    assert.include(
+      response.text(),
+      '<h1>Escrevemos a infraestrutura que outros times importam.</h1>'
+    )
     response.assertCookieMissing('locale')
   })
 
