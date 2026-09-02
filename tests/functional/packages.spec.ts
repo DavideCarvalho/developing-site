@@ -48,4 +48,29 @@ test.group('Pacotes na página', () => {
     // a asserção é o elemento da faixa, não a string.)
     assert.notInclude(html, '<b>100%</b>')
   })
+
+  test('a página não afirma MIT para o conjunto todo, em nenhum dos dois locales', async ({
+    client,
+    assert,
+  }) => {
+    // @dudousxd/nestjs-resilience está publicado no npm sem campo `license`.
+    // Pacote sem campo de licença não é permissivo: é "todos os direitos
+    // reservados" por default. Enquanto isso for verdade, a página não pode
+    // dizer que os 178 são MIT — a ausência de licença é o oposto de aberto, e
+    // é o tipo de coisa que trava uma adoção na diligência jurídica.
+    //
+    // As frases saíram dos JSONs de copy inteiras, então estas asserções valem
+    // para o documento todo — inclusive para o blob de props do Inertia, que
+    // carrega o dicionário completo.
+    for (const path of ['/', '/en']) {
+      const response = await client.get(path)
+      const html = response.text()
+
+      assert.notInclude(html, 'MIT packages')
+      assert.notInclude(html, 'licença MIT')
+      assert.notInclude(html, 'MIT licence')
+      assert.notInclude(html, 'tudo MIT')
+      assert.notInclude(html, 'all MIT')
+    }
+  })
 })

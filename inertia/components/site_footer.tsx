@@ -29,7 +29,7 @@ export default function SiteFooter() {
             Agora
           </a>
           <br />
-          <span>{t('f.mit')}</span>
+          <span>{t('f.oss')}</span>
         </div>
       </footer>
     </div>

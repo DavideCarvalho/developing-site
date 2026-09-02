@@ -73,6 +73,9 @@ test.group('Hero', (group) => {
     const html = response.text()
 
     // Mesmo número que a faixa do manifesto estampa logo abaixo do hero.
-    assert.include(html, '<p class="lede">Aviary for NestJS and Agora for AdonisJS — 178 MIT')
+    assert.include(
+      html,
+      '<p class="lede">Aviary for NestJS and Agora for AdonisJS — 178 open source packages'
+    )
   })
 })
