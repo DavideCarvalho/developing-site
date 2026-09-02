@@ -58,3 +58,26 @@ O compose lê `.env.production`, que não está no repositório.
 6. No dia seguinte, `npm_metrics` deixa de estar vazia e os números aparecem
    na página. Para não esperar: `docker compose exec worker node ace
    queue:scheduler:list`.
+
+
+## Sem worker: o sync roda por cron da plataforma
+
+O deploy tem **um serviço só** (web). Uma landing page não justifica um
+container ocioso 24h para disparar uma tarefa por dia.
+
+Consequência: `start/scheduler.ts` não agenda nada. A linha de cron que ele
+gravaria só é executada por um `queue:work` rodando — sem worker, ficaria no
+banco parecendo agendada e nunca rodaria.
+
+Quem dispara é o cron da Guara, chamando:
+
+```
+node ace npm:sync
+```
+
+Diariamente às 5h (America/Sao_Paulo). Sem essa execução a `npm_metrics` fica
+vazia e a página omite todos os números de download — comportamento correto
+diante de ausência de dado, mas perde a prova mais forte do site.
+
+`QUEUE_DRIVER=sync` no ambiente: qualquer job futuro roda inline, já que não
+há consumidor de fila.
