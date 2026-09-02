@@ -1,4 +1,5 @@
 import { test } from '@japa/runner'
+import NpmMetric from '#models/npm_metric'
 import { PACKAGES } from '#database/data/packages'
 import { FAMILIES } from '#database/data/families'
 
@@ -9,7 +10,19 @@ import { FAMILIES } from '#database/data/families'
  * — ninguém percebia. Estas asserções são contra o HTML renderizado, então
  * não há como voltar a divergir sem elas quebrarem.
  */
-test.group('Pacotes na página', () => {
+test.group('Pacotes na página', (group) => {
+  // Estado fixo: o item de downloads da faixa só existe quando há métrica, e
+  // outros grupos truncam a tabela. Sem semear aqui, a asserção sobre o último
+  // item da faixa dependeria da ordem de execução.
+  group.each.setup(async () => {
+    await NpmMetric.truncate()
+    await NpmMetric.create({
+      scope: '@dudousxd',
+      packageName: 'nestjs-telescope',
+      downloads: 123_456,
+    })
+  })
+
   test('a coluna do hero renderiza todos os pacotes da lista do job', async ({
     client,
     assert,
@@ -36,41 +49,58 @@ test.group('Pacotes na página', () => {
     assert.include(html, `<b>${ecosystems}</b> <span>ecossistemas</span>`)
   })
 
-  test('a faixa não afirma 100% MIT', async ({ client, assert }) => {
-    const response = await client.get('/')
-    const html = response.text()
-
-    // @dudousxd/nestjs-resilience não tem campo `license` no package.json, e
-    // pacote sem campo de licença não é MIT — é sem licença. Enquanto isso for
-    // verdade a página não pode afirmar 100%.
-    assert.include(html, '<span><b>MIT</b></span>')
-    // (`100%` solto aparece na largura das barras do gráfico de famílias —
-    // a asserção é o elemento da faixa, não a string.)
-    assert.notInclude(html, '<b>100%</b>')
-  })
-
-  test('a página não afirma MIT para o conjunto todo, em nenhum dos dois locales', async ({
+  test('a página não faz nenhuma afirmação de licença, em nenhum dos dois locales', async ({
     client,
     assert,
   }) => {
-    // @dudousxd/nestjs-resilience está publicado no npm sem campo `license`.
-    // Pacote sem campo de licença não é permissivo: é "todos os direitos
-    // reservados" por default. Enquanto isso for verdade, a página não pode
-    // dizer que os 178 são MIT — a ausência de licença é o oposto de aberto, e
-    // é o tipo de coisa que trava uma adoção na diligência jurídica.
+    // @dudousxd/nestjs-resilience@0.3.1 está publicado no npm sem campo
+    // `license`. Pacote sem campo de licença não é permissivo: é "todos os
+    // direitos reservados" por default — o oposto de aberto, e onde uma
+    // diligência jurídica trava a adoção do Aviary.
     //
-    // As frases saíram dos JSONs de copy inteiras, então estas asserções valem
+    // A faixa do manifesto já foi "100% MIT" e depois "MIT". Tirar o "100%"
+    // mudou a redação sem mudar o que o leitor entende: todo item daquela tira
+    // é um fato agregado sobre o conjunto ("2 ecossistemas · 25 famílias · 178
+    // pacotes"), então um "MIT" solto no meio continua sendo lido como "e
+    // todos eles são MIT". O item saiu inteiro. A página não afirma licença
+    // nenhuma enquanto o pacote não for republicado.
+    //
+    // As frases saíram dos JSONs de copy por completo, então a asserção vale
     // para o documento todo — inclusive para o blob de props do Inertia, que
-    // carrega o dicionário completo.
+    // carrega o dicionário inteiro. É isso que faz ela pegar uma reversão que
+    // só reponha a copy sem tocar no markup.
     for (const path of ['/', '/en']) {
       const response = await client.get(path)
       const html = response.text()
 
+      // Palavra inteira: um hash de asset ou um token que contenha as três
+      // letras no meio de outras não é uma afirmação de licença.
+      assert.notMatch(html, /\bMIT\b/)
+
+      // Redundantes de propósito: quando uma frase específica volta, a
+      // mensagem de falha diz qual, em vez de só "achou MIT em algum lugar".
       assert.notInclude(html, 'MIT packages')
       assert.notInclude(html, 'licença MIT')
       assert.notInclude(html, 'MIT licence')
       assert.notInclude(html, 'tudo MIT')
       assert.notInclude(html, 'all MIT')
     }
+  })
+
+  test('a faixa do manifesto termina nos downloads, sem item de licença', async ({
+    client,
+    assert,
+  }) => {
+    const response = await client.get('/')
+    const html = response.text()
+
+    const bar = html.match(/<div class="manifest">.*?<\/div>/s)?.[0] ?? ''
+    assert.notEqual(bar, '', 'a faixa do manifesto existe')
+    // (`100%` solto aparece na largura das barras do gráfico de famílias, por
+    // isso a asserção é dentro da faixa, não no documento.)
+    assert.notInclude(bar, '100%')
+    assert.notInclude(bar, 'MIT')
+    // O último item é o de downloads — nada foi acrescentado depois dele.
+    assert.match(bar, /<span>downloads por mês<\/span><\/span><\/div>$/)
   })
 })

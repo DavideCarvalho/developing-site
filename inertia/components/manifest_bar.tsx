@@ -9,6 +9,16 @@ import { useMetrics, useNumber, useT } from '~/lib/i18n'
  * O total de downloads vem do banco (`metrics`, ver
  * NpmDownloadsService.totals()). Sem métrica nenhuma ainda, o item some da
  * faixa em vez de mostrar zero.
+ *
+ * Não há item de licença aqui, e a ausência é deliberada. A faixa já foi
+ * "100% MIT", depois "MIT" — mas todo item desta tira é um fato agregado sobre
+ * o conjunto do trabalho, então um "MIT" solto entre eles continua sendo lido
+ * como "e todos eles são MIT". E não são: @dudousxd/nestjs-resilience está
+ * publicado sem campo `license`, o que por default é "todos os direitos
+ * reservados". Uma tira de números não tem espaço para ressalva, e uma
+ * ressalva de licença numa página que se vende por números verificáveis
+ * derruba mais a página do que o silêncio. Volta quando o pacote for
+ * republicado com `license: "MIT"`.
  */
 export default function ManifestBar() {
   const t = useT()
@@ -32,13 +42,6 @@ export default function ManifestBar() {
             <b data-metric="downloads">{n(metrics.total)}</b> <span>{t('m.dl')}</span>
           </span>
         )}
-        {/* Era "100% MIT". Não é verificável: @dudousxd/nestjs-resilience não
-            tem campo `license` no package.json, e pacote sem campo de licença
-            não é MIT — é sem licença. A faixa afirma só o que dá para
-            conferir hoje. */}
-        <span>
-          <b>MIT</b>
-        </span>
       </div>
     </div>
   )
