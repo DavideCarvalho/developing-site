@@ -41,8 +41,6 @@ const shieldConfig = defineConfig({
     // POST do cron é rejeitado antes de chegar no controller e o sync
     // nunca roda — silenciosamente, porque o cron só vê uma resposta.
     // A rota é protegida por segredo próprio, não por CSRF.
-    exceptRoutes: (ctx) => ctx.request.url().startsWith('/internal/'),
-
     /**
      * Expose an encrypted XSRF-TOKEN cookie for frontend HTTP clients.
      */

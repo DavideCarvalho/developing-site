@@ -1,0 +1,76 @@
+import { BaseSchema } from '@adonisjs/lucid/schema'
+
+/**
+ * Transport tables for the @adonis-agora/durable `db` transport: the point-to-point work channels (tasks /
+ * results / heartbeats / control) that let durable remote steps run cross-process over the database
+ * alone. JSON payloads are stored as TEXT (the transport (de)serializes them) and timestamps as
+ * epoch-ms integers, so the schema is portable across SQLite / Postgres / MySQL. Only needed when you
+ * select the `db` transport in config/durable.ts.
+ */
+export default class extends BaseSchema {
+  async up() {
+    this.schema.createTable('durable_transport_tasks', (table) => {
+      table.string('step_id').primary()
+      table.string('run_id').notNullable()
+      table.integer('seq').notNullable()
+      table.string('name').notNullable()
+      table.string('grp').notNullable()
+      table.string('namespace').notNullable().defaultTo('default')
+      table.text('input')
+      table.string('traceparent')
+      table.text('context')
+      table.string('transport')
+      table.integer('attempt').notNullable()
+      table.string('claimed_by')
+      table.bigInteger('claimed_at')
+      table.bigInteger('created_at').notNullable()
+      table.index(['namespace', 'grp', 'claimed_at', 'created_at'], 'durable_transport_tasks_grp_idx')
+    })
+
+    this.schema.createTable('durable_transport_results', (table) => {
+      table.string('step_id').primary()
+      table.string('run_id').notNullable()
+      table.integer('seq').notNullable()
+      table.string('status').notNullable()
+      table.string('namespace').notNullable().defaultTo('default')
+      table.text('output')
+      table.text('error')
+      table.bigInteger('started_at')
+      table.text('events')
+      table.string('claimed_by')
+      table.bigInteger('claimed_at')
+      table.bigInteger('created_at').notNullable()
+      table.index(['namespace', 'claimed_at', 'created_at'], 'durable_transport_results_idx')
+    })
+
+    this.schema.createTable('durable_transport_heartbeats', (table) => {
+      table.increments('id').primary()
+      table.string('run_id').notNullable()
+      table.integer('seq').notNullable()
+      table.string('step_id').notNullable()
+      table.string('grp').notNullable()
+      table.string('namespace').notNullable().defaultTo('default')
+      table.string('claimed_by')
+      table.bigInteger('claimed_at')
+      table.bigInteger('created_at').notNullable()
+      table.index(['namespace', 'claimed_at', 'created_at'], 'durable_transport_heartbeats_idx')
+    })
+
+    this.schema.createTable('durable_transport_control', (table) => {
+      table.increments('id').primary()
+      table.text('payload').notNullable()
+      table.string('namespace').notNullable().defaultTo('default')
+      table.string('claimed_by')
+      table.bigInteger('claimed_at')
+      table.bigInteger('created_at').notNullable()
+      table.index(['namespace', 'claimed_at', 'created_at'], 'durable_transport_control_idx')
+    })
+  }
+
+  async down() {
+    this.schema.dropTableIfExists('durable_transport_control')
+    this.schema.dropTableIfExists('durable_transport_heartbeats')
+    this.schema.dropTableIfExists('durable_transport_results')
+    this.schema.dropTableIfExists('durable_transport_tasks')
+  }
+}

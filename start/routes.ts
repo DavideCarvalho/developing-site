@@ -16,7 +16,6 @@ import { resolveLocale } from '#middleware/locale_middleware'
 const LandingController = () => import('#controllers/landing_controller')
 const BriefingsController = () => import('#controllers/briefings_controller')
 const SeoController = () => import('#controllers/seo_controller')
-const InternalController = () => import('#controllers/internal_controller')
 
 router.get('/sitemap.xml', [SeoController, 'sitemap']).as('seo.sitemap')
 router.get('/robots.txt', [SeoController, 'robots']).as('seo.robots')
@@ -48,6 +47,3 @@ router
   .use(briefingThrottle)
   .as('briefing.store')
 
-// Gatilho do cron da plataforma. Protegido por segredo porque a rota também
-// responde pelo endereço público (ver app/controllers/internal_controller.ts).
-router.post('/internal/npm-sync', [InternalController, 'syncNpmMetrics']).as('internal.npmSync')

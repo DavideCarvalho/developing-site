@@ -11,13 +11,12 @@
 /*
  * Sem agendamento aqui, de propósito.
  *
- * O deploy não tem worker: uma landing page não justifica um container ocioso
- * 24h para disparar uma tarefa diária. A linha de cron que este arquivo
- * gravaria só é executada por um `queue:work` rodando — sem ele, ficaria
- * escrita no banco e nunca executada, dando a impressão de estar agendada.
+ * Quem agenda é o @adonis-agora/durable: a cadência do único trabalho recorrente do site mora
+ * na classe do workflow (`static schedule` em app/workflows/sync_npm_metrics_workflow.ts), e o
+ * loop que a dispara roda dentro do próprio processo web (`worker.embedded` em config/durable.ts).
  *
- * Quem agenda o sync de métricas é o cron da plataforma, chamando
- * `node ace npm:sync` (ver commands/sync_npm_metrics.ts e docs/deploy.md).
+ * Uma linha de cron escrita aqui dependeria de um `queue:work` rodando. Não existe worker neste
+ * deploy, então ela ficaria gravada no banco e nunca seria executada — parecendo agendada.
  */
 
 export {}
