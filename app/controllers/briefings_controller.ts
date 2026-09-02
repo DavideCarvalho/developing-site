@@ -1,27 +1,28 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import mail from '@adonisjs/mail/services/main'
 import logger from '@adonisjs/core/services/logger'
-import i18nManager from '@adonisjs/i18n/services/main'
 import Briefing from '#models/briefing'
 import BriefingReceivedNotification from '#mails/briefing_received_notification'
 import { briefingValidator } from '#validators/briefing_validator'
-import { resolveLocale } from '#middleware/locale_middleware'
+import { CANONICAL_PATH } from '#middleware/locale_middleware'
 
 export default class BriefingsController {
   async store(ctx: HttpContext) {
     const { request, response, session } = ctx
+    // Volta pra `/` ou `/en` explicitamente (não .back()): sem Referer, back()
+    // cairia na raiz, que pode redirecionar de novo por causa do cookie de
+    // locale — e esse segundo pulo consome o flash antes da página certa
+    // renderizar. Ver o comentário em start/routes.ts.
+    const back = () => response.redirect().toPath(CANONICAL_PATH[ctx.locale])
 
-    // Honeypot: bot preencheu o campo escondido. Responde como sucesso para
-    // não ensinar o que foi detectado, e não grava nada.
+    // Honeypot: bot preencheu o campo escondido. A resposta precisa ser
+    // idêntica à de sucesso — mesmo status, mesmo redirect, mesmo flash —
+    // senão qualquer coisa que siga o redirect consegue distinguir "aceito"
+    // de "rejeitado em silêncio" pela página que vem depois. Não grava nada.
     if (request.input('website')) {
-      return response.redirect().back()
+      session.flash('briefing', 'sent')
+      return back()
     }
-
-    // /briefing atende as duas páginas com um único endpoint (sem prefixo de
-    // locale na URL), então roda sem o LocaleMiddleware — que redireciona em
-    // GET. Aqui só precisamos do locale para localizar as mensagens de
-    // validação; resolveLocale não tem esse efeito colateral de redirect.
-    ctx.i18n = i18nManager.locale(resolveLocale(ctx))
 
     const payload = await request.validateUsing(briefingValidator)
 
@@ -44,6 +45,6 @@ export default class BriefingsController {
     }
 
     session.flash('briefing', 'sent')
-    return response.redirect().back()
+    return back()
   }
 }

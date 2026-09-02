@@ -6,7 +6,7 @@ import { type HttpContext, RequestValidator } from '@adonisjs/core/http'
 const SUPPORTED = ['pt-BR', 'en'] as const
 export type Locale = (typeof SUPPORTED)[number]
 
-const CANONICAL_PATH: Record<Locale, string> = {
+export const CANONICAL_PATH: Record<Locale, string> = {
   'pt-BR': '/',
   'en': '/en',
 }

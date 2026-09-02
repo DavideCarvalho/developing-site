@@ -1,4 +1,6 @@
 import app from '@adonisjs/core/services/app'
+import { errors as limiterErrors } from '@adonisjs/limiter'
+import { CANONICAL_PATH } from '#middleware/locale_middleware'
 import { type HttpContext, ExceptionHandler } from '@adonisjs/core/http'
 import type { StatusPageRange, StatusPageRenderer } from '@adonisjs/core/types/http'
 
@@ -30,6 +32,29 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    /**
+     * Um 429 cru (o default do @adonisjs/limiter para requests HTML: só
+     * texto em inglês, sem X-Inertia, sem redirect) joga o visitante numa
+     * página fora do ar da marca e do locale. Quem bate nesse limite quase
+     * sempre não é um bot — é um escritório inteiro atrás do mesmo IP
+     * enviando briefings na mesma tarde. Trata como um erro de validação:
+     * flasha uma mensagem localizada e volta pra página, no mesmo formato
+     * que o visitante já vê quando erra um campo do formulário.
+     */
+    if (error instanceof limiterErrors.ThrottleException && ctx.session) {
+      const negotiated = ctx.request.accepts(['html', 'application/vnd.api+json', 'json'])
+      if (negotiated === 'html' || negotiated === null) {
+        ctx.session.flash('error', error.getResponseMessage(ctx))
+        // Prefere o locale já resolvido pela rota (ex.: /briefing, ver
+        // start/routes.ts) — evita o mesmo bug de .back() sem Referer que
+        // faz a raiz redirecionar de novo e consumir o flash no caminho.
+        // Uma rota futura com throttle mas sem locale resolvido cai no
+        // .back() normal.
+        if (ctx.locale) return ctx.response.redirect().toPath(CANONICAL_PATH[ctx.locale])
+        return ctx.response.redirect().back()
+      }
+    }
+
     return super.handle(error, ctx)
   }
 

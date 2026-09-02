@@ -28,8 +28,16 @@ const EMPTY: BriefingFormData = {
 
 export default function BriefingForm() {
   const t = useT()
-  const { flash } = usePage()
+  const { flash, props } = usePage()
   const sent = flash?.briefing === 'sent'
+  // Erros de validação vêm do prop compartilhado "errors" (InertiaMiddleware
+  // .share()), não do form.errors do useForm: form.errors só existe depois
+  // de um post() disparado pelo próprio JS do cliente. Um redirect-back que
+  // chega direto de uma navegação normal (sem passar pelo useForm) — como
+  // no primeiro load depois de um erro de validação, ou em qualquer request
+  // sem JS — só tem o prop compartilhado, e é ele que garante a mensagem
+  // aparecer nos dois casos.
+  const errors = props.errors ?? {}
 
   const form = useForm<BriefingFormData>(EMPTY)
 
@@ -51,9 +59,15 @@ export default function BriefingForm() {
             <p className="lede">{t('b.lede')}</p>
           </div>
 
+          {!sent && flash?.error && (
+            <p className="form-error" role="alert">
+              {flash.error}
+            </p>
+          )}
+
           {!sent && (
             <form className="form" onSubmit={submit} noValidate>
-              <div className={form.errors.name ? 'field has-error' : 'field'}>
+              <div className={errors.name ? 'field has-error' : 'field'}>
                 <label htmlFor="f-name">{t('b.name')}</label>
                 <input
                   id="f-name"
@@ -64,10 +78,10 @@ export default function BriefingForm() {
                   value={form.data.name}
                   onChange={(e) => form.setData('name', e.target.value)}
                 />
-                {form.errors.name && <span className="field-error">{form.errors.name}</span>}
+                {errors.name && <span className="field-error">{errors.name}</span>}
               </div>
 
-              <div className={form.errors.company ? 'field has-error' : 'field'}>
+              <div className={errors.company ? 'field has-error' : 'field'}>
                 <label htmlFor="f-company">{t('b.company')}</label>
                 <input
                   id="f-company"
@@ -78,10 +92,10 @@ export default function BriefingForm() {
                   value={form.data.company}
                   onChange={(e) => form.setData('company', e.target.value)}
                 />
-                {form.errors.company && <span className="field-error">{form.errors.company}</span>}
+                {errors.company && <span className="field-error">{errors.company}</span>}
               </div>
 
-              <div className={form.errors.email ? 'field has-error' : 'field'}>
+              <div className={errors.email ? 'field has-error' : 'field'}>
                 <label htmlFor="f-email">{t('b.email')}</label>
                 <input
                   id="f-email"
@@ -92,10 +106,10 @@ export default function BriefingForm() {
                   value={form.data.email}
                   onChange={(e) => form.setData('email', e.target.value)}
                 />
-                {form.errors.email && <span className="field-error">{form.errors.email}</span>}
+                {errors.email && <span className="field-error">{errors.email}</span>}
               </div>
 
-              <div className={form.errors.phone ? 'field has-error' : 'field'}>
+              <div className={errors.phone ? 'field has-error' : 'field'}>
                 <label htmlFor="f-phone" dangerouslySetInnerHTML={{ __html: t('b.phone') }} />
                 <input
                   id="f-phone"
@@ -105,10 +119,10 @@ export default function BriefingForm() {
                   value={form.data.phone}
                   onChange={(e) => form.setData('phone', e.target.value)}
                 />
-                {form.errors.phone && <span className="field-error">{form.errors.phone}</span>}
+                {errors.phone && <span className="field-error">{errors.phone}</span>}
               </div>
 
-              <div className={form.errors.service_type ? 'field has-error' : 'field'}>
+              <div className={errors.service_type ? 'field has-error' : 'field'}>
                 <label htmlFor="f-service">{t('b.service')}</label>
                 <select
                   id="f-service"
@@ -123,12 +137,10 @@ export default function BriefingForm() {
                   <option value="projeto">{t('b.opt.proj')}</option>
                   <option value="suporte">{t('b.opt.sup')}</option>
                 </select>
-                {form.errors.service_type && (
-                  <span className="field-error">{form.errors.service_type}</span>
-                )}
+                {errors.service_type && <span className="field-error">{errors.service_type}</span>}
               </div>
 
-              <div className={form.errors.budget_range ? 'field has-error' : 'field'}>
+              <div className={errors.budget_range ? 'field has-error' : 'field'}>
                 <label htmlFor="f-budget" dangerouslySetInnerHTML={{ __html: t('b.budget') }} />
                 <select
                   id="f-budget"
@@ -144,12 +156,10 @@ export default function BriefingForm() {
                   <option value="t3">{t('b.bud.3')}</option>
                   <option value="t4">{t('b.bud.4')}</option>
                 </select>
-                {form.errors.budget_range && (
-                  <span className="field-error">{form.errors.budget_range}</span>
-                )}
+                {errors.budget_range && <span className="field-error">{errors.budget_range}</span>}
               </div>
 
-              <div className={form.errors.message ? 'field wide has-error' : 'field wide'}>
+              <div className={errors.message ? 'field wide has-error' : 'field wide'}>
                 <label htmlFor="f-msg">{t('b.problem')}</label>
                 <textarea
                   id="f-msg"
@@ -159,7 +169,7 @@ export default function BriefingForm() {
                   value={form.data.message}
                   onChange={(e) => form.setData('message', e.target.value)}
                 />
-                {form.errors.message && <span className="field-error">{form.errors.message}</span>}
+                {errors.message && <span className="field-error">{errors.message}</span>}
               </div>
 
               <div className="hp" aria-hidden="true">
