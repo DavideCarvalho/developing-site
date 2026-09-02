@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ page.props.locale }}">
+<html lang="{{ page.props.locale || 'pt-BR' }}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,9 +13,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-    <link rel="alternate" hreflang="pt-BR" href="{{ page.props.site.domain }}/" />
-    <link rel="alternate" hreflang="en" href="{{ page.props.site.domain }}/en" />
-    <link rel="alternate" hreflang="x-default" href="{{ page.props.site.domain }}/" />
+    {{--
+      Este layout também renderiza as status pages (404 e 5xx, ver
+      app/exceptions/handler.ts), e essas renderizam com `props = {}`. Sem os
+      guardas abaixo a expressão estoura DENTRO do próprio error handler e todo
+      404 em produção vira um 500 com a mensagem crua na tela. Um 404 não tem
+      alternates de idioma para declarar, então o bloco inteiro some.
+    --}}
+    @if(page.props.site)
+      <link rel="alternate" hreflang="pt-BR" href="{{ page.props.site.domain }}/" />
+      <link rel="alternate" hreflang="en" href="{{ page.props.site.domain }}/en" />
+      <link rel="alternate" hreflang="x-default" href="{{ page.props.site.domain }}/" />
+    @end
 
     @viteReactRefresh()
     @vite(['inertia/app/app.tsx', 'resources/css/app.css'])
