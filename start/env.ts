@@ -49,6 +49,10 @@ export default await Env.create(new URL('../', import.meta.url), {
   MAIL_FROM_ADDRESS: Env.schema.string(),
   SMTP_HOST: Env.schema.string(),
   SMTP_PORT: Env.schema.number(),
+  // Opcionais: um relay sem auth (ex. Mailpit em dev) não precisa dos dois.
+  // Um provedor real em produção precisa — ver config/mail.ts.
+  SMTP_USERNAME: Env.schema.string.optional(),
+  SMTP_PASSWORD: Env.schema.string.optional(),
 
   /*
   |----------------------------------------------------------

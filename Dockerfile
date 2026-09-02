@@ -8,6 +8,13 @@ RUN npm ci
 COPY . .
 RUN node ace build
 
+# node ace build compila o projeto INTEIRO (tsc não filtra por escopo de
+# produção), tests/ incluso — o stage final copia build/ inteiro, então sem
+# isso os specs compilados (asserções de verdade, ~100K) e o bin/test.js que
+# os importa iam parar na imagem final. Removidos aqui, antes do
+# COPY --from=build, para nunca cruzar pro stage de produção.
+RUN rm -rf build/tests build/bin/test.js build/bin/test.js.map
+
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production
