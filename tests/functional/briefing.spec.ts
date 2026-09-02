@@ -101,12 +101,31 @@ test.group('Briefing', (group) => {
     // marcação real do estado de sucesso, não só o flash cru.
     const response = await client
       .post('/briefing')
-      .form({ ...valid, website: 'http://spam.example' })
+      .form({ ...valid, observacao_interna: 'http://spam.example' })
       .withCsrfToken()
 
     assert.include(response.text(), '<h3>Briefing recebido.</h3>')
     const count = await Briefing.query().count('* as total').firstOrFail()
     assert.equal(Number(count.$extras.total), 0)
+  })
+
+  test('o honeypot não usa nome que o autofill do navegador reconhece', async ({
+    client,
+    assert,
+  }) => {
+    const response = await client.get('/')
+    const html = response.text()
+
+    // `website` e `url` são os nomes que a heurística do Chrome casa com o
+    // campo "site" do catálogo de endereços: um visitante de verdade com
+    // autofill ligado preenchia o honeypot sem ver, via a tela de sucesso, e
+    // o briefing era descartado em silêncio. Nenhum campo do formulário pode
+    // voltar a se chamar assim.
+    assert.notMatch(html, /<input[^>]+name="(website|url)"/)
+    // E o campo real continua lá, fora do alcance do teclado.
+    assert.match(html, /<input[^>]+name="observacao_interna"[^>]*>/)
+    assert.match(html, /<div class="hp"[^>]*inert[^>]*>/)
+    assert.match(html, /<input[^>]+tabindex="-1"[^>]*>/)
   })
 
   test('falha de SMTP não perde o lead', async ({ client, assert }) => {

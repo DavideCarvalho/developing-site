@@ -20,7 +20,8 @@ test.group('Hero', (group) => {
       { scope: '@adonis-agora', packageName: 'authkit-server', downloads: 61_031 },
     ])
 
-    const html = (await client.get('/')).text()
+    const response = await client.get('/')
+    const html = response.text()
 
     assert.include(
       html,
@@ -39,7 +40,8 @@ test.group('Hero', (group) => {
       { scope: '@adonis-agora', packageName: 'authkit-server', downloads: 61_031 },
     ])
 
-    const html = (await client.get('/en')).text()
+    const response = await client.get('/en')
+    const html = response.text()
 
     assert.include(
       html,
@@ -52,7 +54,8 @@ test.group('Hero', (group) => {
     client,
     assert,
   }) => {
-    const html = (await client.get('/')).text()
+    const response = await client.get('/')
+    const html = response.text()
 
     // A frase fecha no ponto, sem vírgula pendurada e sem número inventado.
     assert.include(html, '<p class="lede">178 pacotes open source no npm. Dois ecossistemas')
@@ -66,7 +69,8 @@ test.group('Hero', (group) => {
     client,
     assert,
   }) => {
-    const html = (await client.get('/en')).text()
+    const response = await client.get('/en')
+    const html = response.text()
 
     // Mesmo número que a faixa do manifesto estampa logo abaixo do hero.
     assert.include(html, '<p class="lede">Aviary for NestJS and Agora for AdonisJS — 178 MIT')

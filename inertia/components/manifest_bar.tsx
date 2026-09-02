@@ -32,8 +32,12 @@ export default function ManifestBar() {
             <b data-metric="downloads">{n(metrics.total)}</b> <span>{t('m.dl')}</span>
           </span>
         )}
+        {/* Era "100% MIT". Não é verificável: @dudousxd/nestjs-resilience não
+            tem campo `license` no package.json, e pacote sem campo de licença
+            não é MIT — é sem licença. A faixa afirma só o que dá para
+            conferir hoje. */}
         <span>
-          <b>100%</b> MIT
+          <b>MIT</b>
         </span>
       </div>
     </div>

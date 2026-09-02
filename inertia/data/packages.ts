@@ -32,9 +32,10 @@ function mixKey(fullName: string): number {
   return hash
 }
 
-export const PKGS: readonly Pkg[] = PACKAGES.map(
-  (pkg): [Pkg, string] => [[pkg.scope, pkg.packageName], `${pkg.scope}/${pkg.packageName}`]
-)
+export const PKGS: readonly Pkg[] = PACKAGES.map((pkg): [Pkg, string] => [
+  [pkg.scope, pkg.packageName],
+  `${pkg.scope}/${pkg.packageName}`,
+])
   .sort(([, a], [, b]) => mixKey(a) - mixKey(b) || a.localeCompare(b))
   .map(([pkg]) => pkg)
 

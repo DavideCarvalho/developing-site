@@ -19,7 +19,10 @@ export default class BriefingsController {
     // idêntica à de sucesso — mesmo status, mesmo redirect, mesmo flash —
     // senão qualquer coisa que siga o redirect consegue distinguir "aceito"
     // de "rejeitado em silêncio" pela página que vem depois. Não grava nada.
-    if (request.input('website')) {
+    // O nome do campo não é `website` nem `url` de propósito: são os nomes
+    // que o autofill do Chrome preenche sozinho a partir do catálogo de
+    // endereços — um visitante de verdade caía no honeypot sem tocar nele.
+    if (request.input('observacao_interna')) {
       session.flash('briefing', 'sent')
       return back()
     }

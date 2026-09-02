@@ -28,7 +28,8 @@ test.group('Landing', () => {
   })
 
   test('o /en revela a mesma identificação legal', async ({ client, assert }) => {
-    const html = (await client.get('/en')).text()
+    const response = await client.get('/en')
+    const html = response.text()
 
     assert.include(
       html,

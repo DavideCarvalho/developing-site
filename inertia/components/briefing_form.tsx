@@ -12,7 +12,13 @@ type BriefingFormData = {
   message: string
   // Honeypot: só um bot preenche um campo fora da tela. O controller descarta
   // o envio em silêncio quando isso chega preenchido — ver briefings_controller.ts.
-  website: string
+  //
+  // O nome NÃO pode ser `website` nem `url`: são exatamente os nomes que a
+  // heurística de autofill do Chrome casa com o campo "site" do catálogo de
+  // endereços. Um visitante de verdade com autofill ligado preenchia o
+  // honeypot sem ver, via a tela de sucesso, e o briefing era descartado — a
+  // perda silenciosa de lead que este formulário existe para evitar.
+  observacao_interna: string
 }
 
 const EMPTY: BriefingFormData = {
@@ -23,7 +29,7 @@ const EMPTY: BriefingFormData = {
   service_type: 'arquitetura',
   budget_range: '',
   message: '',
-  website: '',
+  observacao_interna: '',
 }
 
 export default function BriefingForm() {
@@ -172,16 +178,19 @@ export default function BriefingForm() {
                 {errors.message && <span className="field-error">{errors.message}</span>}
               </div>
 
-              <div className="hp" aria-hidden="true">
-                <label htmlFor="f-site">Do not fill this field</label>
+              {/* `inert` tira o bloco inteiro do foco, do teclado e da árvore
+                  de acessibilidade; `.hp` (app.css) o tira da tela sem usar
+                  display:none, que é o que faz um bot ignorá-lo. */}
+              <div className="hp" aria-hidden="true" inert>
+                <label htmlFor="f-obs">Do not fill this field</label>
                 <input
-                  id="f-site"
-                  name="website"
+                  id="f-obs"
+                  name="observacao_interna"
                   type="text"
                   tabIndex={-1}
                   autoComplete="off"
-                  value={form.data.website}
-                  onChange={(e) => form.setData('website', e.target.value)}
+                  value={form.data.observacao_interna}
+                  onChange={(e) => form.setData('observacao_interna', e.target.value)}
                 />
               </div>
 

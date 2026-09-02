@@ -29,9 +29,6 @@ test.group('Pacotes', () => {
   })
 
   test('cada família pertence a um dos dois ecossistemas', ({ assert }) => {
-    assert.deepEqual([...new Set(FAMILIES.map((family) => family.eco))].sort(), [
-      'agora',
-      'aviary',
-    ])
+    assert.deepEqual([...new Set(FAMILIES.map((family) => family.eco))].sort(), ['agora', 'aviary'])
   })
 })
