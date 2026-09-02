@@ -67,7 +67,7 @@
     "youch": "4.1.1"
   },
   "dependencies": {
-    "@adonis-agora/durable": "0.31.1",
+    "@adonis-agora/durable": "0.31.2",
     "@adonisjs/auth": "10.1.0",
     "@adonisjs/core": "7.5.0",
     "@adonisjs/cors": "3.0.0",
