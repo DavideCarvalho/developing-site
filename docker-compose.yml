@@ -1,0 +1,64 @@
+# A forma do deploy, executável. Não é ambiente de desenvolvimento (para isso
+# existe `npm run dev`): é a descrição mínima e verificável do que a produção
+# precisa subir — dois processos a partir da MESMA imagem.
+#
+#   docker compose up --build
+#
+# Ver docs/deploy.md para o detalhe e para o que muda em plataformas que não
+# usam compose.
+services:
+  web:
+    build: .
+    # O entrypoint roda `migration:run --force` antes do CMD. É o único
+    # processo que migra: o worker sobe com RUN_MIGRATIONS=false.
+    command: ['node', 'bin/server.js']
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3333'
+    ports:
+      - '3333:3333'
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    # Sem este processo a linha de cron que start/scheduler.ts grava fica
+    # parada no banco para sempre: `queue:work` é quem despacha os jobs
+    # agendados. É ele que preenche `npm_metrics` — e sem `npm_metrics` a
+    # página omite todos os números de download.
+    command: ['node', 'ace', 'queue:work']
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      # Quem migra é o web. Duas migrações concorrentes na mesma subida é
+      # exatamente o que não se quer.
+      RUN_MIGRATIONS: 'false'
+    depends_on:
+      web:
+        condition: service_started
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    env_file: .env.production
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_DATABASE}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
