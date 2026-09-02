@@ -2,7 +2,7 @@ import app from '@adonisjs/core/services/app'
 import { errors as limiterErrors } from '@adonisjs/limiter'
 import { CANONICAL_PATH } from '#middleware/locale_middleware'
 import { type HttpContext, ExceptionHandler } from '@adonisjs/core/http'
-import type { StatusPageRange, StatusPageRenderer } from '@adonisjs/core/types/http'
+import type { HttpError, StatusPageRange, StatusPageRenderer } from '@adonisjs/core/types/http'
 
 export default class HttpExceptionHandler extends ExceptionHandler {
   /**
@@ -45,17 +45,50 @@ export default class HttpExceptionHandler extends ExceptionHandler {
       const negotiated = ctx.request.accepts(['html', 'application/vnd.api+json', 'json'])
       if (negotiated === 'html' || negotiated === null) {
         ctx.session.flash('error', error.getResponseMessage(ctx))
-        // Prefere o locale já resolvido pela rota (ex.: /briefing, ver
-        // start/routes.ts) — evita o mesmo bug de .back() sem Referer que
-        // faz a raiz redirecionar de novo e consumir o flash no caminho.
-        // Uma rota futura com throttle mas sem locale resolvido cai no
-        // .back() normal.
-        if (ctx.locale) return ctx.response.redirect().toPath(CANONICAL_PATH[ctx.locale])
-        return ctx.response.redirect().back()
+        return this.#backToLocale(ctx)
+      }
+    }
+
+    /**
+     * @adonisjs/session sobrescreve renderValidationErrorAsHTML pra sempre
+     * fazer redirect-back com os erros flashados (é assim que o useForm do
+     * Inertia consome erro de validação, não como 422 bruto — ver
+     * app/middleware/locale_middleware.ts). Só que o patch deles usa
+     * `.back()`, que sem Referer cai na raiz "/" — e a raiz pode
+     * redirecionar de novo por causa do cookie de locale, consumindo o
+     * flash no meio do caminho antes da página certa renderizar. Mesmo bug
+     * do throttle acima, caminho diferente: reproduz o comportamento deles
+     * (flashValidationErrors, mesma regra de withInput por X-Inertia), só
+     * trocando o alvo do redirect por um explícito.
+     */
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'E_VALIDATION_ERROR' &&
+      'messages' in error &&
+      ctx.session
+    ) {
+      const negotiated = ctx.request.accepts(['html', 'application/vnd.api+json', 'json'])
+      if (negotiated === 'html' || negotiated === null) {
+        const withInput = ctx.request.header('X-Inertia') ? false : true
+        ctx.session.flashValidationErrors(error as HttpError, withInput)
+        return this.#backToLocale(ctx)
       }
     }
 
     return super.handle(error, ctx)
+  }
+
+  /**
+   * Volta pro locale já resolvido pela rota (ex.: /briefing, ver
+   * start/routes.ts) em vez de `.back()` — não depende do Referer do
+   * navegador. Uma rota que dispara essas exceções sem ter resolvido
+   * ctx.locale cai no `.back()` normal, igual antes.
+   */
+  #backToLocale(ctx: HttpContext) {
+    if (ctx.locale) return ctx.response.redirect().toPath(CANONICAL_PATH[ctx.locale])
+    return ctx.response.redirect().back()
   }
 
   /**

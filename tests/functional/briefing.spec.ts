@@ -13,17 +13,6 @@ const valid = {
   message: 'Sistema legado em PHP que não escala mais.',
 }
 
-/**
- * O AdonisJS liga o servidor de teste numa porta efêmera (o runner ajusta
- * process.env.PORT), não na 3333 fixa do .env. Um Referer com host/porta
- * errados é tratado como ausente por isValidRedirectUrl — então o referer
- * simulado precisa apontar pra essa mesma porta pra imitar de verdade a
- * navegação same-origin de um navegador.
- */
-function referer(path: string) {
-  return `http://${process.env.HOST ?? 'localhost'}:${process.env.PORT ?? 3333}${path}`
-}
-
 test.group('Briefing', (group) => {
   group.each.setup(async () => {
     await Briefing.truncate()
@@ -71,15 +60,15 @@ test.group('Briefing', (group) => {
     // Segue o redirect (sem .redirects(0)) pra pegar a página renderizada de
     // verdade — e a asserção usa a tag em volta da mensagem, não só o texto
     // solto, porque o texto sozinho também aparece no blob de props do
-    // Inertia independentemente do que foi de fato pro DOM. O Referer imita
-    // um navegador real: sem ele, o redirect-back de uma falha de validação
-    // (patch do @adonisjs/session) cai na raiz "/" — que aqui coincide com o
-    // pt-BR, mas não coincidiria se o visitante estivesse em /en.
+    // Inertia independentemente do que foi de fato pro DOM. Sem Referer de
+    // propósito: o handler (app/exceptions/handler.ts) volta pro locale
+    // resolvido em ctx.locale, não pro que o navegador mandou — um teste
+    // que só passasse com um Referer simulado estaria testando em volta do
+    // bug, não contra ele.
     const response = await client
       .post('/briefing')
       .form({ ...valid, email: 'não-é-email' })
       .withCsrfToken()
-      .header('referer', referer('/'))
 
     assert.include(
       response.text(),
@@ -88,17 +77,15 @@ test.group('Briefing', (group) => {
   })
 
   test('mensagem de validação sai em inglês quando o locale é en', async ({ client, assert }) => {
-    // Sem o Referer, o redirect-back cairia em "/" (raiz) em vez de "/en" —
-    // e a raiz, vendo o cookie locale=en, redireciona de novo para /en,
-    // consumindo o flash da validação nesse segundo pulo antes da página
-    // certa renderizar. Um navegador real sempre manda o Referer de origem
-    // numa navegação same-origin; é isso que este header reproduz.
+    // Também sem Referer: é exatamente o cenário que quebrava antes do
+    // fix — um navegador com Referrer-Policy restritiva, ou qualquer
+    // cliente que simplesmente não manda o header, ainda precisa ver o
+    // erro traduzido na própria página, não sumir em silêncio.
     const response = await client
       .post('/briefing')
       .form({ ...valid, email: 'não-é-email' })
       .withCsrfToken()
       .withCookie('locale', 'en')
-      .header('referer', referer('/en'))
 
     assert.include(
       response.text(),
