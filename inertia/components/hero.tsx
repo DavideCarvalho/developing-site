@@ -4,9 +4,11 @@ import { useMetrics, useNumber, usePackageDownloads, useT } from '~/lib/i18n'
 /**
  * A coluna da direita rola os pacotes reais em laço. A lista é duplicada para
  * a emenda não aparecer; `prefers-reduced-motion` para a animação (app.css).
- * Downloads vêm de `packageDownloads` (prop Inertia, do banco): um pacote
- * ainda sem métrica — o job diário só preencheu parte dos 178 — não ganha
- * `.pk-dl` nenhum, em vez de aparecer com um zero inventado.
+ * A lista vem de `~/data/packages`, que é uma vista de `database/data/packages.ts`
+ * — a mesma que o job diário percorre. Downloads vêm de `packageDownloads`
+ * (prop Inertia, do banco): um pacote ainda sem métrica — o job só preencheu
+ * parte da lista — não ganha `.pk-dl` nenhum, em vez de aparecer com um zero
+ * inventado.
  */
 function PackageColumn() {
   const t = useT()

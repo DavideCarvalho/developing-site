@@ -1,193 +1,50 @@
+import { FAMILIES } from '../../database/data/families.js'
+import { PACKAGES } from '../../database/data/packages.js'
+
 /**
- * Os 178 pacotes publicados no npm. Nomes de pacote e escopo são estruturais
- * e mudam raramente — ficam hardcoded aqui. Downloads não: vêm do banco via
- * `packageDownloads` (prop Inertia, ver NpmDownloadsService.byPackage()) e
- * nunca aparecem nesta lista. Zerar um número que não temos seria mentir; a
- * UI omite a métrica em vez disso.
+ * A lista de pacotes publicados no npm existe UMA vez, em
+ * `database/data/packages.ts` — é ela que o job diário de métricas percorre.
+ * Este módulo é só a vista que o cliente consome.
+ *
+ * Havia duas cópias à mão da mesma lista, e elas já divergiam: a do cliente
+ * tinha 177 entradas contra 178 da do servidor, faltando `@adonis-agora/agent`.
+ * O manifesto ainda afirmava 178 por literal, então nada apontava a diferença.
+ *
+ * Downloads continuam fora daqui: vêm do banco via `packageDownloads` (prop
+ * Inertia, ver NpmDownloadsService.byPackage()). Zerar um número que não temos
+ * seria mentir; a UI omite a métrica em vez disso.
  */
 export type Pkg = readonly [scope: string, name: string]
 
-export const PKGS: readonly Pkg[] = [
-  ['@dudousxd', 'nestjs-catalog-dashboard'],
-  ['@adonis-agora', 'authkit-server'],
-  ['@dudousxd', 'nestjs-catalog'],
-  ['@dudousxd', 'nestjs-agent'],
-  ['@dudousxd', 'nestjs-catalog-pipeline'],
-  ['@dudousxd', 'nestjs-diagnostics'],
-  ['@dudousxd', 'nestjs-catalog-react'],
-  ['@adonis-agora', 'media'],
-  ['@dudousxd', 'nestjs-catalog-store-mikro-orm'],
-  ['@adonis-agora', 'telescope'],
-  ['@adonis-agora', 'durable'],
-  ['@adonis-agora', 'collaboration'],
-  ['@adonis-agora', 'authkit-client'],
-  ['@adonis-agora', 'authz'],
-  ['@dudousxd', 'nestjs-durable-core'],
-  ['@adonis-agora', 'telescope-ui'],
-  ['@adonis-agora', 'authkit-core'],
-  ['@dudousxd', 'nestjs-telescope'],
-  ['@adonis-agora', 'authkit-react'],
-  ['@dudousxd', 'nestjs-codegen'],
-  ['@adonis-agora', 'context'],
-  ['@adonis-agora', 'resilience'],
-  ['@dudousxd', 'nestjs-durable'],
-  ['@adonis-agora', 'diagnostics'],
-  ['@dudousxd', 'nestjs-durable-dashboard'],
-  ['@adonis-agora', 'media-react'],
-  ['@dudousxd', 'nestjs-filter'],
-  ['@dudousxd', 'nestjs-telescope-ui'],
-  ['@adonis-agora', 'filter'],
-  ['@adonis-agora', 'collaboration-client'],
-  ['@adonis-agora', 'filter-client'],
-  ['@dudousxd', 'nestjs-agent-rag-media'],
-  ['@dudousxd', 'nestjs-media-dashboard'],
-  ['@dudousxd', 'nestjs-filter-mikro-orm'],
-  ['@dudousxd', 'nestjs-agent-telescope'],
-  ['@dudousxd', 'nestjs-filter-codegen'],
-  ['@dudousxd', 'nestjs-durable-store-mikro-orm'],
-  ['@dudousxd', 'nestjs-filter-client'],
-  ['@dudousxd', 'nestjs-durable-transport-bullmq'],
-  ['@dudousxd', 'nestjs-agent-core'],
-  ['@dudousxd', 'nestjs-durable-telescope'],
-  ['@dudousxd', 'nestjs-telescope-schedule'],
-  ['@dudousxd', 'durable-worker'],
-  ['@dudousxd', 'nestjs-telescope-bullmq'],
-  ['@dudousxd', 'nestjs-agent-rag'],
-  ['@dudousxd', 'nestjs-telescope-mikro-orm'],
-  ['@dudousxd', 'nestjs-agent-store-mikro-orm'],
-  ['@dudousxd', 'nestjs-media-core'],
-  ['@dudousxd', 'nestjs-notifications-database-mikro-orm'],
-  ['@dudousxd', 'nestjs-media-disk-s3'],
-  ['@dudousxd', 'nestjs-agent-react'],
-  ['@dudousxd', 'nestjs-notifications-core'],
-  ['@dudousxd', 'nestjs-agent-dashboard'],
-  ['@dudousxd', 'nestjs-telescope-mikro-orm-watcher'],
-  ['@dudousxd', 'nestjs-notifications-database'],
-  ['@dudousxd', 'nestjs-telescope-cache'],
-  ['@dudousxd', 'nestjs-media'],
-  ['@dudousxd', 'nestjs-client'],
-  ['@dudousxd', 'nestjs-notifications-sse'],
-  ['@dudousxd', 'nestjs-agent-ai-sdk'],
-  ['@dudousxd', 'nestjs-inertia-client'],
-  ['@dudousxd', 'nestjs-media-telescope'],
-  ['@adonis-agora', 'agent-dashboard'],
-  ['@dudousxd', 'nestjs-inertia'],
-  ['@dudousxd', 'nestjs-telescope-logs'],
-  ['@dudousxd', 'nestjs-notifications-mail'],
-  ['@dudousxd', 'nestjs-catalog-store-fanout'],
-  ['@dudousxd', 'nestjs-notifications-slack'],
-  ['@dudousxd', 'nestjs-media-upload-redis'],
-  ['@dudousxd', 'nestjs-notifications-event-emitter'],
-  ['@dudousxd', 'nestjs-codegen-tanstack'],
-  ['@dudousxd', 'nestjs-notifications-react'],
-  ['@dudousxd', 'nestjs-agent-codegen'],
-  ['@dudousxd', 'nestjs-notifications-client'],
-  ['@dudousxd', 'nestjs-telescope-mail'],
-  ['@dudousxd', 'nestjs-notifications-codegen'],
-  ['@dudousxd', 'nestjs-telescope-otel'],
-  ['@dudousxd', 'nestjs-durable-otel'],
-  ['@dudousxd', 'nestjs-inertia-vite'],
-  ['@dudousxd', 'nestjs-codegen-zod'],
-  ['@dudousxd', 'nestjs-inertia-codegen-extension'],
-  ['@dudousxd', 'nestjs-diagnostics-telescope'],
-  ['@dudousxd', 'nestjs-media-client'],
-  ['@dudousxd', 'nestjs-catalog-store-clickhouse'],
-  ['@dudousxd', 'nestjs-durable-store-typeorm'],
-  ['@adonis-agora', 'media-dashboard'],
-  ['@dudousxd', 'nestjs-durable-eslint-plugin'],
-  ['@adonis-agora', 'authz-react'],
-  ['@dudousxd', 'nestjs-durable-testing'],
-  ['@adonis-agora', 'authkit-sdk'],
-  ['@dudousxd', 'nestjs-durable-store-prisma'],
-  ['@dudousxd', 'nestjs-catalog-secrets-aws'],
-  ['@dudousxd', 'nestjs-durable-store-drizzle'],
-  ['@dudousxd', 'nestjs-media-disk-local'],
-  ['@adonis-agora', 'durable-dashboard'],
-  ['@dudousxd', 'nestjs-context'],
-  ['@adonis-agora', 'durable-eslint-plugin'],
-  ['@dudousxd', 'nestjs-filter-typeorm'],
-  ['@dudousxd', 'nestjs-agent-data'],
-  ['@adonis-agora', 'authkit-testing'],
-  ['@dudousxd', 'nestjs-agent-authz'],
-  ['@dudousxd', 'nestjs-telescope-sqs'],
-  ['@dudousxd', 'nestjs-media-testing'],
-  ['@dudousxd', 'nestjs-agent-store-drizzle'],
-  ['@adonis-agora', 'payments'],
-  ['@dudousxd', 'nestjs-authz-mikro-orm'],
-  ['@dudousxd', 'nestjs-catalog-telescope'],
-  ['@dudousxd', 'nestjs-media-database-mikro-orm'],
-  ['@dudousxd', 'nestjs-catalog-secrets-vault'],
-  ['@dudousxd', 'nestjs-telescope-redis'],
-  ['@dudousxd', 'nestjs-authz'],
-  ['@dudousxd', 'nestjs-telescope-testing'],
-  ['@adonis-agora', 'authkit-vault-aws'],
-  ['@dudousxd', 'nestjs-notifications-database-typeorm'],
-  ['@adonis-agora', 'authkit-vault-gcp'],
-  ['@dudousxd', 'nestjs-telescope-events'],
-  ['@dudousxd', 'nestjs-notifications-database-prisma'],
-  ['@adonis-agora', 'authkit-vault-azure'],
-  ['@dudousxd', 'nestjs-diagnostics-redis'],
-  ['@dudousxd', 'nestjs-notifications-resilience'],
-  ['@dudousxd', 'nestjs-filter-react'],
-  ['@dudousxd', 'nestjs-notifications-push'],
-  ['@dudousxd', 'nestjs-durable-transport-event-emitter'],
-  ['@dudousxd', 'nestjs-notifications-testing'],
-  ['@dudousxd', 'nestjs-durable-diagnostics'],
-  ['@dudousxd', 'nestjs-notifications-webhook'],
-  ['@dudousxd', 'nestjs-resilience'],
-  ['@dudousxd', 'nestjs-notifications-sms'],
-  ['@dudousxd', 'nestjs-authz-inertia'],
-  ['@dudousxd', 'nestjs-notifications-bullmq'],
-  ['@dudousxd', 'nestjs-authz-typeorm'],
-  ['@dudousxd', 'nestjs-notifications-delivery-tracking'],
-  ['@dudousxd', 'nestjs-agent-testing'],
-  ['@dudousxd', 'nestjs-notifications-preferences'],
-  ['@dudousxd', 'nestjs-media-database-drizzle'],
-  ['@dudousxd', 'nestjs-notifications-redis'],
-  ['@dudousxd', 'nestjs-media-database-prisma'],
-  ['@dudousxd', 'nestjs-notifications-diagnostics'],
-  ['@dudousxd', 'nestjs-media-image-sharp'],
-  ['@dudousxd', 'nestjs-notifications-broadcast'],
-  ['@dudousxd', 'nestjs-authz-prisma'],
-  ['@dudousxd', 'nestjs-notifications-telescope'],
-  ['@dudousxd', 'nestjs-media-database-typeorm'],
-  ['@dudousxd', 'nestjs-notifications-telegram'],
-  ['@dudousxd', 'nestjs-agent-transport-redis'],
-  ['@dudousxd', 'nestjs-notifications-teams'],
-  ['@dudousxd', 'nestjs-telescope-observe'],
-  ['@dudousxd', 'nestjs-notifications-discord'],
-  ['@dudousxd', 'nestjs-telescope-prisma'],
-  ['@adonis-agora', 'payments-dashboard'],
-  ['@dudousxd', 'nestjs-telescope-redis-watcher'],
-  ['@adonis-agora', 'payments-react'],
-  ['@dudousxd', 'nestjs-telescope-typeorm'],
-  ['@dudousxd', 'nestjs-inertia-testing'],
-  ['@dudousxd', 'nestjs-telescope-ai'],
-  ['@dudousxd', 'nestjs-authz-client'],
-  ['@dudousxd', 'nestjs-media-react'],
-  ['@dudousxd', 'nestjs-codegen-valibot'],
-  ['@dudousxd', 'nestjs-authz-react'],
-  ['@dudousxd', 'nestjs-durable-codegen'],
-  ['@dudousxd', 'nestjs-media-codegen'],
-  ['@dudousxd', 'nestjs-resilience-telescope'],
-  ['@dudousxd', 'nestjs-codegen-arktype'],
-  ['@dudousxd', 'nestjs-resilience-store-redis'],
-  ['@dudousxd', 'nestjs-durable-transport-db'],
-  ['@dudousxd', 'nestjs-inertia-cli'],
-  ['@dudousxd', 'nestjs-context-testing'],
-  ['@dudousxd', 'nestjs-authz-codegen'],
-  ['@dudousxd', 'nestjs-resilience-store-drizzle'],
-  ['@dudousxd', 'nestjs-authz-testing'],
-  ['@dudousxd', 'nestjs-durable-cli'],
-  ['@dudousxd', 'nestjs-resilience-store-mikro-orm'],
-  ['@dudousxd', 'nestjs-durable-transport-sqs'],
-  ['@dudousxd', 'nestjs-resilience-store-typeorm'],
-  ['@dudousxd', 'nestjs-durable-admission-redis'],
-  ['@dudousxd', 'nestjs-resilience-store-prisma'],
-  ['@dudousxd', 'nestjs-catalog-store-duckdb'],
-]
+/**
+ * `PACKAGES` está em ordem alfabética, que na coluna rolante do hero viraria
+ * vinte `nestjs-durable-*` em sequência e depois dezenove `nestjs-telescope-*`.
+ * Esta ordenação embaralha por um hash do nome: é uma função pura, então o SSR
+ * e a hidratação produzem exatamente a mesma ordem — o que uma ordenação
+ * aleatória não daria.
+ */
+function mixKey(fullName: string): number {
+  let hash = 0x811c9dc5
+  for (let i = 0; i < fullName.length; i++) {
+    hash ^= fullName.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193) >>> 0
+  }
+  return hash
+}
 
-/** O manifesto: contagens estruturais conferidas no registry, não estimadas.
- *  Sem downloads aqui — o total por ecossistema vem do banco (prop `metrics`,
- *  ver NpmDownloadsService.totals()). */
-export const MANIFEST = { ecosystems: 2, families: 25, packages: 178 } as const
+export const PKGS: readonly Pkg[] = PACKAGES.map(
+  (pkg): [Pkg, string] => [[pkg.scope, pkg.packageName], `${pkg.scope}/${pkg.packageName}`]
+)
+  .sort(([, a], [, b]) => mixKey(a) - mixKey(b) || a.localeCompare(b))
+  .map(([pkg]) => pkg)
+
+/**
+ * O manifesto: contagens estruturais DERIVADAS dos dados, nunca afirmadas por
+ * literal. Sem downloads aqui — o total por ecossistema vem do banco (prop
+ * `metrics`, ver NpmDownloadsService.totals()).
+ */
+export const MANIFEST: { ecosystems: number; families: number; packages: number } = {
+  ecosystems: new Set(FAMILIES.map((family) => family.eco)).size,
+  families: FAMILIES.length,
+  packages: PKGS.length,
+}
