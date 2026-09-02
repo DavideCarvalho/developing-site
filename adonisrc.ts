@@ -146,18 +146,10 @@ export default defineConfig({
         transformers: { enabled: true, withSharedProps: true },
       }),
       indexPages({ framework: 'react' }),
-      /*
-       * NÃO adicione aqui os hooks de codegen do @adonis-agora/durable
-       * ('@adonis-agora/durable/hooks/workflows' e '/hooks/steps'). O `node ace configure`
-       * do pacote os escreve sozinho, e eles QUEBRAM o build:
-       *
-       *   TypeError: handler.handle is not a function
-       *
-       * @poppinss/hooks invoca um handler que não é função via `handler.handle(...)`, e os
-       * hooks do durable expõem `run`. Sem eles, a descoberta dos workflows cai na varredura
-       * de app/workflows em runtime — o fallback suportado, coberto por
-       * tests/functional/npm_sync_schedule.spec.ts.
-       */
+      // Barrels tipados de app/workflows e app/steps, gerados em build/dev — cada um
+      // substitui a varredura de diretório em runtime do provider.
+      () => import('@adonis-agora/durable/hooks/workflows'),
+      () => import('@adonis-agora/durable/hooks/steps'),
     ],
     buildStarting: [() => import('@adonisjs/vite/build_hook')],
   },

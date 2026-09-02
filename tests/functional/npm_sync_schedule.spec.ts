@@ -15,9 +15,10 @@ test.group('Agendamento do sync de métricas', () => {
     const engine = await app.container.make(WorkflowEngine)
     const schedule = engine.discoveredSchedules.find((s) => s.workflow === 'sync_npm_metrics')
 
-    // A descoberta é por varredura de app/workflows em runtime (os hooks de codegen do durable
-    // estão fora do adonisrc — ver a nota lá). Se essa varredura parar de achar a classe, é aqui
-    // que se descobre, e não meses depois olhando um número velho na home.
+    // A descoberta é pelo barrel que os hooks de codegen do durable geram em build/dev
+    // (.adonisjs/durable/workflows.ts, via o alias #workflows do package.json). São várias peças
+    // encadeadas — hook, alias, barrel — e se qualquer uma quebrar a classe some sem erro nenhum.
+    // É aqui que isso vira vermelho, e não meses depois olhando um número velho na home.
     assert.exists(schedule, 'workflow sync_npm_metrics não foi descoberto pelo durable')
     assert.equal(schedule!.cron, '0 5 * * *')
     assert.equal(schedule!.timezone, 'America/Sao_Paulo')
