@@ -1,6 +1,22 @@
 import { test } from '@japa/runner'
 import NpmMetric from '#models/npm_metric'
 
+/**
+ * Recorta o card de um ecossistema do HTML renderizado. Os números de
+ * download aparecem em três lugares diferentes da página (coluna do hero,
+ * faixa do manifesto, card do ecossistema) — sem recortar, uma asserção de
+ * `include` não distingue qual dos três a produziu.
+ */
+function ecoBlock(html: string, eco: 'aviary' | 'agora'): string {
+  const marker = `class="eco eco-${eco} rise"`
+  const start = html.indexOf(marker)
+  if (start === -1) return ''
+
+  const rest = html.slice(start + marker.length)
+  const bounds = [rest.indexOf('class="eco eco-'), rest.indexOf('</section>')].filter((i) => i > -1)
+  return bounds.length ? rest.slice(0, Math.min(...bounds)) : rest
+}
+
 test.group('Open source', (group) => {
   group.each.setup(async () => {
     await NpmMetric.truncate()
@@ -47,8 +63,22 @@ test.group('Open source', (group) => {
 
     const response = await client.get('/')
     const html = response.text()
-    assert.include(html, '146.393')
-    assert.include(html, '61.367')
+
+    // Procurar "146.393" no documento inteiro não provava nada: a coluna de
+    // pacotes do hero renderiza os mesmos dois números, então apagar o bloco
+    // de downloads por ecossistema inteiro deixava o teste passando. A
+    // asserção tem que ser o elemento de dentro do card do ecossistema.
+    assert.include(
+      ecoBlock(html, 'aviary'),
+      '<b data-metric="downloads">146.393</b> <span>downloads/mês</span>'
+    )
+    assert.include(
+      ecoBlock(html, 'agora'),
+      '<b data-metric="downloads">61.367</b> <span>downloads/mês</span>'
+    )
+    // E cada card mostra o total do SEU ecossistema, não o da página.
+    assert.notInclude(ecoBlock(html, 'aviary'), '61.367')
+    assert.notInclude(ecoBlock(html, 'agora'), '146.393')
   })
 
   test('o manifesto rolante do hero mostra downloads só de pacotes com métrica', async ({
