@@ -1,6 +1,6 @@
 # A forma do deploy, executável. Não é ambiente de desenvolvimento (para isso
 # existe `npm run dev`): é a descrição mínima e verificável do que a produção
-# precisa subir — dois processos a partir da MESMA imagem.
+# precisa subir — UM processo.
 #
 #   docker compose up --build
 #
@@ -9,8 +9,9 @@
 services:
   web:
     build: .
-    # O entrypoint roda `migration:run --force` antes do CMD. É o único
-    # processo que migra: o worker sobe com RUN_MIGRATIONS=false.
+    # O entrypoint roda `migration:run --force` antes do CMD. Este processo
+    # também é quem agenda: o loop do @adonis-agora/durable roda aqui dentro
+    # (worker.embedded em config/durable.ts), sem container separado.
     command: ['node', 'bin/server.js']
     env_file: .env.production
     environment:
@@ -20,26 +21,6 @@ services:
     ports:
       - '3333:3333'
     depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-
-  worker:
-    build: .
-    # Sem este processo a linha de cron que start/scheduler.ts grava fica
-    # parada no banco para sempre: `queue:work` é quem despacha os jobs
-    # agendados. É ele que preenche `npm_metrics` — e sem `npm_metrics` a
-    # página omite todos os números de download.
-    command: ['node', 'ace', 'queue:work']
-    env_file: .env.production
-    environment:
-      NODE_ENV: production
-      # Quem migra é o web. Duas migrações concorrentes na mesma subida é
-      # exatamente o que não se quer.
-      RUN_MIGRATIONS: 'false'
-    depends_on:
-      web:
-        condition: service_started
       db:
         condition: service_healthy
     restart: unless-stopped

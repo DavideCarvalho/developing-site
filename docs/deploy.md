@@ -1,83 +1,75 @@
 # Deploy
 
-A imagem é uma só. O deploy sobe **dois processos** a partir dela, e nenhum
-dos dois é opcional.
+Uma imagem, **um processo**:
 
-| papel  | comando                  | `RUN_MIGRATIONS` |
-| ------ | ------------------------ | ---------------- |
-| web    | `node bin/server.js`     | (default: `true`) |
-| worker | `node ace queue:work`    | `false`          |
+```
+node bin/server.js
+```
 
-`docker-entrypoint.sh` roda `node ace migration:run --force` e só então faz
-`exec` no comando do container. Quem migra é o **web**; o worker sobe com
-`RUN_MIGRATIONS=false` para não disputar a mesma migração na mesma subida.
+`docker-entrypoint.sh` roda `node ace migration:run --force` e só então faz `exec` no comando do
+container. O `exec` é obrigatório: sem ele o Node vira filho do shell e o SIGTERM do orquestrador
+nunca chega no app — que é o que dispara o desligamento ordenado do agendador.
 
-Em compose: `docker compose up --build` (ver `docker-compose.yml`). Em
-plataformas que só aceitam um serviço por imagem (Fly, Railway, Kubernetes,
-Guara), declare dois serviços/deployments apontando para a mesma imagem e
-troque o comando e a variável conforme a tabela acima.
+Em compose: `docker compose up --build` (ver `docker-compose.yml`).
 
-## Por que os dois
+## Onde mora o agendamento
 
-**Migrações.** Nada no deploy rodava `migration:run`. Num primeiro deploy o
-banco não tem `briefings` (o primeiro briefing enviado dava 500), nem as
-tabelas da fila — e essas o boot do servidor já precisa, porque
-`start/scheduler.ts` grava a linha de cron do sync de métricas.
+O único trabalho recorrente do site é o sync de downloads do npm. Ele **não** tem container próprio
+e **não** depende de cron da plataforma.
 
-**Worker.** `QUEUE_DRIVER=database` faz `SyncNpmMetricsJob.schedule().cron()`
-gravar uma linha agendada no banco. Quem executa linha agendada é o processo
-`queue:work` do `@adonisjs/queue` — o servidor HTTP não executa nenhuma. Sem
-o worker, `npm_metrics` fica vazia para sempre; e como toda a página omite
-número que não existe (regra deliberada: número ausente é honesto, número
-inventado não), a landing simplesmente nunca mostra nenhum download.
+Quem agenda é o `@adonis-agora/durable`:
 
-Um worker só é suficiente: `worker.concurrency` é 5 (`config/queue.ts`) e o
-job é diário.
+- a cadência está na classe do workflow — `static schedule` em
+  `app/workflows/sync_npm_metrics_workflow.ts`, cron `0 5 * * *` no fuso `America/Sao_Paulo`;
+- o loop que dispara roda **dentro do processo web** (`worker.embedded` em `config/durable.ts`).
 
-## Variáveis de ambiente
+Uma landing page não justifica um segundo container ocioso 24h para disparar uma tarefa diária.
 
-`.env.example` lista todas; `start/env.ts` valida e derruba o boot se faltar
-alguma. As duas que só produção precisa de verdade:
+### O que isso protege
 
-- `APP_KEY` — chave de 32 bytes, secreta, igual nos dois containers.
-- `SMTP_USERNAME` / `SMTP_PASSWORD` — opcionais no schema porque um relay
-  local (Mailpit) não os usa; um provedor real usa. Sem eles, a notificação
-  de briefing falha em silêncio (o lead continua salvo no banco).
+**Deploy na hora da janela.** `backfill: { maxCatchup: 1 }` faz a janela perdida rodar na volta. No
+desenho anterior, um deploy às 5h pulava o dia inteiro em silêncio.
 
-O compose lê `.env.production`, que não está no repositório.
+**Estado sobrevive a restart.** O store é `lucid` (Postgres), não o `memory` do stub. Sem estado
+persistido, um restart apagaria a memória de que a janela não rodou — e o backfill não teria o que
+consultar.
 
-## Checklist de um deploy novo
+**Exatamente uma vez.** O run id é determinístico por janela de tempo, então mesmo com várias
+instâncias web ticando ao mesmo tempo cada janela começa uma única vez.
 
-1. `.env.production` preenchido (a partir de `.env.example`).
-2. `docker compose up --build -d`.
-3. `docker compose logs web | grep migration` — a saída tem que listar as
-   migrações aplicadas.
-4. `docker compose logs worker` — tem que dizer
-   `Starting worker for queues: default`.
-5. `curl -i https://…/nope` — tem que responder **404**, não 500.
-6. No dia seguinte, `npm_metrics` deixa de estar vazia e os números aparecem
-   na página. Para não esperar: `docker compose exec worker node ace
-   queue:scheduler:list`.
+**O loop não vaza para outros ambientes.** Ele só sobe no ambiente `web`. Um `node ace
+migration:run` não vira worker sem querer.
 
-
-## Sem worker: o sync roda por cron da plataforma
-
-O deploy tem **um serviço só** (web). Uma landing page não justifica um
-container ocioso 24h para disparar uma tarefa por dia.
-
-Consequência: `start/scheduler.ts` não agenda nada. A linha de cron que ele
-gravaria só é executada por um `queue:work` rodando — sem worker, ficaria no
-banco parecendo agendada e nunca rodaria.
-
-Quem dispara é o cron da Guara, chamando:
+### Rodar à mão
 
 ```
 node ace npm:sync
 ```
 
-Diariamente às 5h (America/Sao_Paulo). Sem essa execução a `npm_metrics` fica
-vazia e a página omite todos os números de download — comportamento correto
-diante de ausência de dado, mas perde a prova mais forte do site.
+Sem nenhuma execução, `npm_metrics` fica vazia e a página **omite** todos os números de download —
+comportamento correto diante de ausência de dado (número ausente é honesto, número inventado não),
+mas perde a prova mais forte do site.
 
-`QUEUE_DRIVER=sync` no ambiente: qualquer job futuro roda inline, já que não
-há consumidor de fila.
+## Variáveis de ambiente
+
+`.env.example` lista todas; `start/env.ts` valida e derruba o boot se faltar alguma. As que só
+produção precisa de verdade:
+
+- `APP_KEY` — chave de 32 bytes, secreta.
+- `SMTP_USERNAME` / `SMTP_PASSWORD` — opcionais no schema porque um relay local (Mailpit) não os
+  usa; um provedor real usa. Sem eles, a notificação de briefing falha em silêncio (o lead continua
+  salvo no banco).
+
+`QUEUE_DRIVER` ainda existe porque `@adonisjs/queue` continua instalado, mas **não há job nenhum**
+nem consumidor de fila. Deixe em `sync`.
+
+## Checklist de um deploy novo
+
+1. `.env.production` preenchido (a partir de `.env.example`).
+2. `docker compose up --build -d`.
+3. `docker compose logs web | grep migration` — tem que listar as migrações aplicadas.
+4. `docker compose logs web | grep "embedded worker"` — tem que dizer
+   `durable: embedded worker started (interval 30000ms, 1 schedule(s))`. **1 schedule**: zero
+   significa que o workflow não foi descoberto e o sync nunca vai rodar.
+5. `curl -i https://…/nope` — tem que responder **404**, não 500.
+6. Os números aparecem na página depois da primeira execução do sync.

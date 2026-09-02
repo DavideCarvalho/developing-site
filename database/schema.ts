@@ -32,6 +32,138 @@ export class BriefingSchema extends BaseModel {
   declare updatedAt: DateTime
 }
 
+export class DurableBufferedEventSchema extends BaseModel {
+  static $columns = ['id', 'name', 'payload', 'publishedAt'] as const
+  $columns = DurableBufferedEventSchema.$columns
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare name: string
+  @column()
+  declare payload: string | null
+  @column()
+  declare publishedAt: bigint | number
+}
+
+export class DurableBufferedSignalSchema extends BaseModel {
+  static $columns = ['id', 'payload', 'token'] as const
+  $columns = DurableBufferedSignalSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare payload: string | null
+  @column()
+  declare token: string
+}
+
+export class DurableRunAttributeSchema extends BaseModel {
+  static $columns = ['key', 'numValue', 'runId', 'strValue'] as const
+  $columns = DurableRunAttributeSchema.$columns
+  @column()
+  declare key: string
+  @column()
+  declare numValue: number | null
+  @column({ isPrimary: true })
+  declare runId: string
+  @column()
+  declare strValue: string | null
+}
+
+export class DurableSignalWaiterSchema extends BaseModel {
+  static $columns = ['parallelGroup', 'runId', 'seq', 'token'] as const
+  $columns = DurableSignalWaiterSchema.$columns
+  @column()
+  declare parallelGroup: string | null
+  @column()
+  declare runId: string
+  @column()
+  declare seq: number
+  @column({ isPrimary: true })
+  declare token: string
+}
+
+export class DurableStepCheckpointSchema extends BaseModel {
+  static $columns = ['attempts', 'enqueuedAt', 'error', 'events', 'finishedAt', 'heartbeatProgress', 'input', 'kind', 'lastHeartbeatAt', 'name', 'output', 'parallelGroup', 'runId', 'seq', 'startedAt', 'status', 'stepId', 'wakeAt', 'workerGroup'] as const
+  $columns = DurableStepCheckpointSchema.$columns
+  @column()
+  declare attempts: number
+  @column()
+  declare enqueuedAt: bigint | number | null
+  @column()
+  declare error: string | null
+  @column()
+  declare events: string | null
+  @column()
+  declare finishedAt: bigint | number
+  @column()
+  declare heartbeatProgress: string | null
+  @column()
+  declare input: string | null
+  @column()
+  declare kind: string
+  @column()
+  declare lastHeartbeatAt: bigint | number | null
+  @column()
+  declare name: string
+  @column()
+  declare output: string | null
+  @column()
+  declare parallelGroup: string | null
+  @column({ isPrimary: true })
+  declare runId: string
+  @column()
+  declare seq: number
+  @column()
+  declare startedAt: bigint | number
+  @column()
+  declare status: string
+  @column()
+  declare stepId: string
+  @column()
+  declare wakeAt: bigint | number | null
+  @column()
+  declare workerGroup: string | null
+}
+
+export class DurableWorkflowRunSchema extends BaseModel {
+  static $columns = ['createdAt', 'error', 'id', 'input', 'lockedBy', 'lockedUntil', 'namespace', 'output', 'priority', 'recoveryAttempts', 'searchAttributes', 'status', 'tags', 'updatedAt', 'wakeAt', 'workflow', 'workflowVersion'] as const
+  $columns = DurableWorkflowRunSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare error: string | null
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare input: string | null
+  @column()
+  declare lockedBy: string | null
+  @column()
+  declare lockedUntil: bigint | number | null
+  @column()
+  declare namespace: string
+  @column()
+  declare output: string | null
+  @column()
+  declare priority: number | null
+  @column()
+  declare recoveryAttempts: number | null
+  @column()
+  declare searchAttributes: string | null
+  @column()
+  declare status: string
+  @column()
+  declare tags: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+  @column()
+  declare wakeAt: bigint | number | null
+  @column()
+  declare workflow: string
+  @column()
+  declare workflowVersion: string
+}
+
 export class NpmMetricSchema extends BaseModel {
   static $columns = ['downloads', 'fetchedAt', 'id', 'packageName', 'scope'] as const
   $columns = NpmMetricSchema.$columns
