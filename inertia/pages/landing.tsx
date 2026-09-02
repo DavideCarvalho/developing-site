@@ -1,4 +1,5 @@
 import BriefingForm from '~/components/briefing_form'
+import HeadTags from '~/components/head_tags'
 import Hero from '~/components/hero'
 import ManifestBar from '~/components/manifest_bar'
 import Nav from '~/components/nav'
@@ -28,6 +29,8 @@ export default function Landing() {
 
   return (
     <>
+      <HeadTags />
+
       <div className="axis">
         <div className="axis-fill" id="axisFill" />
       </div>

@@ -15,6 +15,10 @@ import { resolveLocale } from '#middleware/locale_middleware'
 
 const LandingController = () => import('#controllers/landing_controller')
 const BriefingsController = () => import('#controllers/briefings_controller')
+const SeoController = () => import('#controllers/seo_controller')
+
+router.get('/sitemap.xml', [SeoController, 'sitemap']).as('seo.sitemap')
+router.get('/robots.txt', [SeoController, 'robots']).as('seo.robots')
 
 router.get('/', [LandingController, 'show']).use(middleware.locale()).as('landing.pt')
 router

@@ -31,10 +31,15 @@ const NAMESPACE = 'site'
 /**
  * Toda string visível da página sai daqui. A chave volta como fallback: uma
  * tradução faltando aparece como "p.s2h" na tela, o que é ruidoso de propósito.
+ *
+ * O namespace por trás de `useT()` é sempre "site" — resources/lang/*\/site.json
+ * nunca é tocado por outra feature. Strings novas (como as de SEO) entram num
+ * arquivo próprio, do mesmo jeito que errors.json e validator.json já fazem, e
+ * passam o namespace explicitamente: `useT('seo')`.
  */
-export function useT() {
+export function useT(namespace: string = NAMESPACE) {
   const { messages } = useLandingProps()
-  return (key: string) => messages[`${NAMESPACE}.${key}`] ?? messages[key] ?? key
+  return (key: string) => messages[`${namespace}.${key}`] ?? messages[key] ?? key
 }
 
 export function useLocale(): Locale {
