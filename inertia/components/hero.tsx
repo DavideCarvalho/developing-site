@@ -1,5 +1,5 @@
-import { PKGS } from '~/data/packages'
-import { useNumber, usePackageDownloads, useT } from '~/lib/i18n'
+import { MANIFEST, PKGS } from '~/data/packages'
+import { useMetrics, useNumber, usePackageDownloads, useT } from '~/lib/i18n'
 
 /**
  * A coluna da direita rola os pacotes reais em laço. A lista é duplicada para
@@ -47,6 +47,15 @@ function PackageColumn() {
 
 export default function Hero() {
   const t = useT()
+  const n = useNumber()
+  const metrics = useMetrics()
+
+  // O número de downloads da lede é o mesmo do banco que alimenta a faixa do
+  // manifesto — nunca um literal na copy. Sem métrica nenhuma a oração inteira
+  // some (a lede fecha em "no npm."), mesma regra de degradação do resto da
+  // página: um número ausente é honesto, um número velho não é.
+  const downloads = metrics ? t('hero.lede.dl', { n: n(metrics.total) }) : ''
+  const lede = t('hero.lede', { packages: n(MANIFEST.packages), downloads })
 
   return (
     <section className="sec blk-hero" style={{ paddingTop: 0 }}>
@@ -59,7 +68,7 @@ export default function Hero() {
             </p>
             <h1>{t('hero.h1')}</h1>
             {/* A lede carrega um <span class="hero-num"> âmbar na copy aprovada. */}
-            <p className="lede" dangerouslySetInnerHTML={{ __html: t('hero.lede') }} />
+            <p className="lede" dangerouslySetInnerHTML={{ __html: lede }} />
             <div className="hero-cta">
               <a className="btn" href="#briefing">
                 {t('hero.cta1')}

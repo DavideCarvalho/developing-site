@@ -39,7 +39,16 @@ const NAMESPACE = 'site'
  */
 export function useT(namespace: string = NAMESPACE) {
   const { messages } = useLandingProps()
-  return (key: string) => messages[`${namespace}.${key}`] ?? messages[key] ?? key
+  return (key: string, values?: Record<string, string>) => {
+    const message = messages[`${namespace}.${key}`] ?? messages[key] ?? key
+    if (!values) return message
+    // Interpolação deliberadamente burra: `{nome}` trocado pelo valor. Existe
+    // para que número vivo (downloads do banco, contagem de pacotes) nunca
+    // precise ser escrito à mão dentro da copy — foi assim que a lede do hero
+    // ficou anunciando "207 mil" enquanto o banco já registrava outro total.
+    // Um placeholder sem valor fica como está, visível, em vez de sumir.
+    return message.replace(/\{(\w+)\}/g, (raw, name: string) => values[name] ?? raw)
+  }
 }
 
 export function useLocale(): Locale {
