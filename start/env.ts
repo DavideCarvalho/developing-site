@@ -59,5 +59,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring the limiter package
   |----------------------------------------------------------
   */
+  NPM_SYNC_TOKEN: Env.schema.string(),
   LIMITER_STORE: Env.schema.enum(['database', 'memory'] as const)
 })

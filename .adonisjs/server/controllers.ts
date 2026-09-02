@@ -5,6 +5,7 @@
 
 export const controllers = {
   Briefings: () => import('#controllers/briefings_controller'),
+  Internal: () => import('#controllers/internal_controller'),
   Landing: () => import('#controllers/landing_controller'),
   Seo: () => import('#controllers/seo_controller'),
 }

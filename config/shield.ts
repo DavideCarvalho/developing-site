@@ -36,7 +36,12 @@ const shieldConfig = defineConfig({
      * Route patterns to exclude from CSRF checks.
      * Useful for external webhooks or API endpoints.
      */
-    exceptRoutes: [],
+    // O gatilho do cron não é um navegador: não tem sessão, não recebe o
+    // cookie XSRF e não teria como devolver o token. Sem esta exceção o
+    // POST do cron é rejeitado antes de chegar no controller e o sync
+    // nunca roda — silenciosamente, porque o cron só vê uma resposta.
+    // A rota é protegida por segredo próprio, não por CSRF.
+    exceptRoutes: (ctx) => ctx.request.url().startsWith('/internal/'),
 
     /**
      * Expose an encrypted XSRF-TOKEN cookie for frontend HTTP clients.
