@@ -1,5 +1,7 @@
 import { test } from '@japa/runner'
 import { siteConfig } from '#config/site'
+import ptSeo from '../../resources/lang/pt-BR/seo.json' with { type: 'json' }
+import enSeo from '../../resources/lang/en/seo.json' with { type: 'json' }
 
 /**
  * O plano deste task hardcoda `https://developing.com.br` nas assertions.
@@ -14,7 +16,9 @@ const DOMAIN = siteConfig.domain
 /** Extrai o conteúdo do primeiro <url>...</url> cujo <loc> é `loc`. */
 function urlBlock(xml: string, loc: string): string {
   const escaped = loc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const match = xml.match(new RegExp(`<url>(?:(?!</url>).)*<loc>${escaped}</loc>(?:(?!</url>).)*</url>`, 's'))
+  const match = xml.match(
+    new RegExp(`<url>(?:(?!</url>).)*<loc>${escaped}</loc>(?:(?!</url>).)*</url>`, 's')
+  )
   if (!match) throw new Error(`nenhum bloco <url> encontrado para ${loc}`)
   return match[0]
 }
@@ -95,5 +99,17 @@ test.group('SEO', () => {
     assert.include(html, `property="og:image" content="${DOMAIN}/og.png"`)
     assert.include(html, 'property="og:image:width" content="1200"')
     assert.include(html, 'property="og:image:height" content="630"')
+  })
+
+  test('o <title> renderizado é exatamente o da copy de SEO', async ({ client, assert }) => {
+    // O scaffold vinha com um callback de `title` em app.tsx que anexava
+    // " - Developing" — e ssr.tsx não tinha o mesmo callback, então o servidor
+    // mandava um título e a aba trocava sozinha depois da hidratação. Os dois
+    // entrypoints emitem o título da copy, e ele já carrega a marca.
+    const pt = await client.get('/')
+    assert.include(pt.text(), `<title data-inertia>${ptSeo.title}</title>`)
+
+    const en = await client.get('/en')
+    assert.include(en.text(), `<title data-inertia>${enSeo.title}</title>`)
   })
 })
