@@ -5,7 +5,7 @@ O plano de implementação é um documento separado.
 
 ## Contexto
 
-DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LT é uma consultoria de arquitetura e
+DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LTDA é uma consultoria de arquitetura e
 desenvolvimento de software. Não há cases de cliente, logos ou time para exibir.
 
 O que existe, e é mais forte do que qualquer um dos três: **dois ecossistemas open source
@@ -246,7 +246,7 @@ Dados institucionais confirmados, para o rodapé:
 
 | Campo | Valor |
 |---|---|
-| Razão social | `DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LT` |
+| Razão social | `DEVELOPING CONSULTING DESENVOLVEDOR DE SOFTWARE LTDA` |
 | CNPJ | `39.598.365/0001-03` (dígitos verificadores validados) |
 
 Os demais valores pendentes — e-mail de contato, telefone, domínio — ficam

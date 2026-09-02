@@ -1,0 +1,15 @@
+{
+  "shared.fields.name": "nome",
+  "shared.fields.company": "empresa",
+  "shared.fields.email": "e-mail",
+  "shared.fields.phone": "telefone",
+  "shared.fields.service_type": "tipo de serviço",
+  "shared.fields.budget_range": "faixa de orçamento",
+  "shared.fields.message": "mensagem",
+  "shared.messages.required": "O campo {field} é obrigatório.",
+  "shared.messages.string": "O campo {field} deve ser um texto.",
+  "shared.messages.email": "O campo {field} deve ser um e-mail válido.",
+  "shared.messages.minLength": "O campo {field} deve ter pelo menos {min} caracteres.",
+  "shared.messages.maxLength": "O campo {field} deve ter no máximo {max} caracteres.",
+  "shared.messages.enum": "O valor selecionado para {field} é inválido."
+}

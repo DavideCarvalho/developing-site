@@ -1,0 +1,21 @@
+node_modules
+build
+tmp
+.env
+.env.local
+.env.test
+.env.production.local
+.env.development.local
+.git
+.github
+.superpowers
+.adonisjs
+docs
+*.md
+npm-debug.log
+yarn-error.log
+.DS_Store
+
+# Fontes de arte da marca: 5,9 MB de PSD que nunca entram na imagem nem no
+# build. O que a página serve é o SVG/PNG já exportado em public/brand.
+Logo, Nome, Textura

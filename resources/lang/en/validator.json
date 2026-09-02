@@ -1,0 +1,15 @@
+{
+  "shared.fields.name": "name",
+  "shared.fields.company": "company",
+  "shared.fields.email": "email",
+  "shared.fields.phone": "phone",
+  "shared.fields.service_type": "service type",
+  "shared.fields.budget_range": "budget range",
+  "shared.fields.message": "message",
+  "shared.messages.required": "The {field} field is required.",
+  "shared.messages.string": "The {field} field must be text.",
+  "shared.messages.email": "The {field} field must be a valid email address.",
+  "shared.messages.minLength": "The {field} field must have at least {min} characters.",
+  "shared.messages.maxLength": "The {field} field must not exceed {max} characters.",
+  "shared.messages.enum": "The selected {field} is invalid."
+}
