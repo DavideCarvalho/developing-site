@@ -30,6 +30,7 @@ export default defineConfig({
     () => import('@adonisjs/session/commands'),
     () => import('@adonisjs/inertia/commands'),
     () => import('@adonisjs/queue/commands'),
+    () => import('@adonisjs/mail/commands')
   ],
 
   /*
@@ -61,6 +62,8 @@ export default defineConfig({
     () => import('#providers/api_provider'),
     () => import('@adonisjs/i18n/i18n_provider'),
     () => import('@adonisjs/queue/queue_provider'),
+    () => import('@adonisjs/mail/mail_provider'),
+    () => import('@adonisjs/limiter/limiter_provider')
   ],
 
   /*

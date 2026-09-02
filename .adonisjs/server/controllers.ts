@@ -4,5 +4,6 @@
  */
 
 export const controllers = {
+  Briefings: () => import('#controllers/briefings_controller'),
   Landing: () => import('#controllers/landing_controller'),
 }

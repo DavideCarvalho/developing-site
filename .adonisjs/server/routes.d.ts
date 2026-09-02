@@ -6,6 +6,7 @@ export type ScannedRoutes = {
   ALL: {
     'landing.pt': { paramsTuple?: []; params?: {} }
     'landing.en': { paramsTuple?: []; params?: {} }
+    'briefing.store': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'landing.pt': { paramsTuple?: []; params?: {} }
@@ -14,6 +15,9 @@ export type ScannedRoutes = {
   HEAD: {
     'landing.pt': { paramsTuple?: []; params?: {} }
     'landing.en': { paramsTuple?: []; params?: {} }
+  }
+  POST: {
+    'briefing.store': { paramsTuple?: []; params?: {} }
   }
 }
 declare module '@adonisjs/core/types/http' {

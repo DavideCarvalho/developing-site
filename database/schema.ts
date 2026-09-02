@@ -7,6 +7,31 @@
 import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
+export class BriefingSchema extends BaseModel {
+  static $columns = ['budgetRange', 'company', 'createdAt', 'email', 'id', 'message', 'name', 'phone', 'serviceType', 'updatedAt'] as const
+  $columns = BriefingSchema.$columns
+  @column()
+  declare budgetRange: string | null
+  @column()
+  declare company: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare email: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare message: string
+  @column()
+  declare name: string
+  @column()
+  declare phone: string | null
+  @column()
+  declare serviceType: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
+
 export class NpmMetricSchema extends BaseModel {
   static $columns = ['downloads', 'fetchedAt', 'id', 'packageName', 'scope'] as const
   $columns = NpmMetricSchema.$columns
@@ -84,6 +109,17 @@ export class QueueScheduleSchema extends BaseModel {
   declare timezone: string
   @column.dateTime()
   declare toDate: DateTime | null
+}
+
+export class RateLimitSchema extends BaseModel {
+  static $columns = ['expire', 'key', 'points'] as const
+  $columns = RateLimitSchema.$columns
+  @column()
+  declare expire: bigint | number | null
+  @column({ isPrimary: true })
+  declare key: string
+  @column()
+  declare points: number
 }
 
 export class UserSchema extends BaseModel {

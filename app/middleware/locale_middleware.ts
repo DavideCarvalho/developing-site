@@ -15,6 +15,18 @@ function isSupported(value: unknown): value is Locale {
   return typeof value === 'string' && (SUPPORTED as readonly string[]).includes(value)
 }
 
+/**
+ * Resolve o locale a partir do cookie/Accept-Language sem os efeitos
+ * colaterais de `handle()` (gravar cookie, redirecionar). Usado por rotas
+ * como POST /briefing, que atendem os dois locales num único endpoint e não
+ * podem virar um redirect no meio de um submit — perderia o corpo do POST.
+ */
+export function resolveLocale(ctx: HttpContext): Locale {
+  const cookie = ctx.request.cookie('locale')
+  if (isSupported(cookie)) return cookie
+  return ctx.request.language([...SUPPORTED]) === 'en' ? 'en' : 'pt-BR'
+}
+
 export default class LocaleMiddleware {
   /**
    * Using i18n for validation messages. Applicable to only

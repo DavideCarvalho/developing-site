@@ -1,3 +1,4 @@
+import BriefingForm from '~/components/briefing_form'
 import Hero from '~/components/hero'
 import ManifestBar from '~/components/manifest_bar'
 import Nav from '~/components/nav'
@@ -38,8 +39,7 @@ export default function Landing() {
         <ManifestBar />
         {locale === 'en' ? [openSource, services, process] : [process, services, openSource]}
         <Stack />
-        {/* Task 7 troca esta âncora pela seção de briefing. */}
-        <div className="blk-briefing" id="briefing" />
+        <BriefingForm />
         <SiteFooter />
       </main>
     </>

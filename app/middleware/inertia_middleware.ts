@@ -41,6 +41,9 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
     return {
       error: session?.flashMessages.get('error') as string | undefined,
       success: session?.flashMessages.get('success') as string | undefined,
+      // Sinaliza que o formulário de briefing foi recebido (BriefingsController#store).
+      // O componente do form troca para o estado de sucesso quando isso é 'sent'.
+      briefing: session?.flashMessages.get('briefing') as string | undefined,
     }
   }
 
