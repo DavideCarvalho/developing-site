@@ -1,22 +1,33 @@
 import { PKGS } from '~/data/packages'
-import { useNumber, useT } from '~/lib/i18n'
+import { useNumber, usePackageDownloads, useT } from '~/lib/i18n'
 
 /**
  * A coluna da direita rola os pacotes reais em laço. A lista é duplicada para
  * a emenda não aparecer; `prefers-reduced-motion` para a animação (app.css).
+ * Downloads vêm de `packageDownloads` (prop Inertia, do banco): um pacote
+ * ainda sem métrica — o job diário só preencheu parte dos 178 — não ganha
+ * `.pk-dl` nenhum, em vez de aparecer com um zero inventado.
  */
 function PackageColumn() {
   const t = useT()
   const n = useNumber()
-  const rows = PKGS.map(([scope, name, downloads]) => (
-    <div className="pk" key={`${scope}/${name}`}>
-      <span className="pk-id">
-        <span className="pk-scope">{scope}/</span>
-        <span className="pk-name">{name}</span>
-      </span>
-      <span className="pk-dl">{n(downloads)}</span>
-    </div>
-  ))
+  const downloads = usePackageDownloads()
+  const rows = PKGS.map(([scope, name]) => {
+    const dl = downloads[`${scope}/${name}`]
+    return (
+      <div className="pk" key={`${scope}/${name}`}>
+        <span className="pk-id">
+          <span className="pk-scope">{scope}/</span>
+          <span className="pk-name">{name}</span>
+        </span>
+        {dl !== undefined && (
+          <span className="pk-dl" data-metric="downloads">
+            {n(dl)}
+          </span>
+        )}
+      </div>
+    )
+  })
 
   return (
     <div aria-hidden="true">

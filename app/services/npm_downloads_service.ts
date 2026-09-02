@@ -159,4 +159,17 @@ export default class NpmDownloadsService {
 
     return { aviary, agora, total: aviary + agora }
   }
+
+  /**
+   * Downloads por pacote, para o manifesto rolante do hero. Um pacote
+   * conhecido (está em PACKAGES) mas ainda sem linha na tabela — o job
+   * diário só preencheu parte dos 178 — simplesmente não entra no mapa; a UI
+   * omite o número em vez de inventar um zero.
+   */
+  static async byPackage(): Promise<Record<string, number>> {
+    const rows = await NpmMetric.all()
+    const map: Record<string, number> = {}
+    for (const row of rows) map[`${row.scope}/${row.packageName}`] = row.downloads
+    return map
+  }
 }
