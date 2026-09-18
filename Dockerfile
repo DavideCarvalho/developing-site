@@ -23,7 +23,9 @@ RUN npm ci --omit=dev
 COPY --from=build /app/build ./
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-EXPOSE 3333
+# A Upuai lê a porta do EXPOSE (DETECTED_PORT) e o edge do domínio sempre manda pra 3000;
+# a porta real vem da $PORT injetada pela plataforma.
+EXPOSE 3000
 
 # O entrypoint roda as migrações e depois faz exec no CMD. A mesma imagem sobe
 # nos dois papéis que o deploy precisa (ver docs/deploy.md):
