@@ -1,6 +1,8 @@
 import { hydrateRoot } from 'react-dom/client'
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
+import type { AnalyticsConfig } from '#config/analytics'
+import { startAnalytics } from '~/lib/analytics'
 
 /**
  * Sem callback de `title`: o <title> da página é escrito à mão em
@@ -23,6 +25,9 @@ createInertiaApp({
     // de novo — piscada visível e as animações de entrada (.rise) redisparando
     // depois que a página já tinha assentado.
     hydrateRoot(el, <App {...props} />)
+
+    const pageProps = props.initialPage.props as { analytics?: AnalyticsConfig }
+    void startAnalytics(pageProps.analytics)
   },
   progress: false,
 })

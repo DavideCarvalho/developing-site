@@ -8,12 +8,12 @@ import { useSite } from '~/lib/site'
  */
 const OG_LOCALE: Record<'pt-BR' | 'en', string> = {
   'pt-BR': 'pt_BR',
-  en: 'en_US',
+  'en': 'en_US',
 }
 
 const CANONICAL_PATH: Record<'pt-BR' | 'en', string> = {
   'pt-BR': '/',
-  en: '/en',
+  'en': '/en',
 }
 
 /**
@@ -35,11 +35,34 @@ export default function HeadTags() {
   const orgJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: site.legalName,
-    url: site.domain,
-    logo: `${site.domain}/brand/logo.svg`,
-    taxID: site.cnpj,
-    sameAs: [site.docs.aviary, site.docs.agora],
+    '@id': `${site.domain}/#organization`,
+    'name': site.legalName,
+    'alternateName': 'Developing',
+    description,
+    'url': site.domain,
+    'logo': `${site.domain}/brand/logo.svg`,
+    'image': image,
+    'email': site.email,
+    'taxID': site.cnpj,
+    'address': { '@type': 'PostalAddress', 'addressCountry': 'BR' },
+    'contactPoint': {
+      '@type': 'ContactPoint',
+      'contactType': 'sales',
+      'email': site.email,
+      'availableLanguage': ['pt-BR', 'en'],
+    },
+    'knowsAbout': ['NestJS', 'AdonisJS', 'TypeScript', 'Node.js', 'Software architecture'],
+    'sameAs': [site.docs.aviary, site.docs.agora],
+  }
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${site.domain}/#website`,
+    'name': 'Developing',
+    'url': site.domain,
+    'inLanguage': ['pt-BR', 'en'],
+    'publisher': { '@id': `${site.domain}/#organization` },
   }
 
   return (
@@ -55,6 +78,7 @@ export default function HeadTags() {
       <meta property="og:url" content={url} />
       <meta property="og:locale" content={OG_LOCALE[locale]} />
       <meta property="og:image" content={image} />
+      <meta property="og:image:alt" content={title} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
 
@@ -62,8 +86,10 @@ export default function HeadTags() {
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
+      <meta name="twitter:image:alt" content={title} />
 
       <script type="application/ld+json">{JSON.stringify(orgJsonLd)}</script>
+      <script type="application/ld+json">{JSON.stringify(websiteJsonLd)}</script>
     </Head>
   )
 }

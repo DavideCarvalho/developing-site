@@ -112,4 +112,34 @@ test.group('SEO', () => {
     const en = await client.get('/en')
     assert.include(en.text(), `<title data-inertia>${enSeo.title}</title>`)
   })
+
+  test('a página renderiza um único <title> (sem o placeholder do scaffold)', async ({
+    client,
+    assert,
+  }) => {
+    for (const path of ['/', '/en']) {
+      const response = await client.get(path)
+      const html = response.text()
+      assert.lengthOf(html.match(/<title[\s>]/g) ?? [], 1)
+    }
+  })
+
+  test('o JSON-LD traz contato da empresa e um WebSite ligado à Organization', async ({
+    client,
+    assert,
+  }) => {
+    const response = await client.get('/')
+    const html = response.text()
+    const blocks = [
+      ...html.matchAll(/<script type="application\/ld\+json"[^>]*>([^<]+)<\/script>/g),
+    ].map((match) => JSON.parse(match[1]) as Record<string, any>)
+
+    const org = blocks.find((block) => block['@type'] === 'Organization')
+    const website = blocks.find((block) => block['@type'] === 'WebSite')
+
+    assert.equal(org?.email, siteConfig.email)
+    assert.equal(org?.contactPoint?.email, siteConfig.email)
+    assert.equal(website?.url, DOMAIN)
+    assert.equal(website?.publisher?.['@id'], org?.['@id'])
+  })
 })
