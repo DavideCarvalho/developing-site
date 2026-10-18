@@ -1,12 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import i18nManager from '@adonisjs/i18n/services/main'
 import { siteConfig } from '#config/site'
+import { analyticsConfig } from '#config/analytics'
 import NpmDownloadsService from '#services/npm_downloads_service'
 
 export default class LandingController {
   async show({ inertia, locale }: HttpContext) {
     return inertia.render('landing', {
       site: siteConfig,
+      analytics: analyticsConfig,
       locale,
       messages: i18nManager.getTranslationsFor(locale),
       metrics: await NpmDownloadsService.totals(),

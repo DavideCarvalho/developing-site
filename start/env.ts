@@ -63,5 +63,16 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   NPM_SYNC_TOKEN: Env.schema.string(),
-  LIMITER_STORE: Env.schema.enum(['database', 'memory'] as const)
+  LIMITER_STORE: Env.schema.enum(['database', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | PostHog (analytics da landing)
+  |----------------------------------------------------------
+  |
+  | Sem POSTHOG_KEY o script nem carrega: dev, testes e qualquer ambiente
+  | fora de produção ficam sem analytics por omissão, não por flag.
+  */
+  POSTHOG_KEY: Env.schema.string.optional(),
+  POSTHOG_HOST: Env.schema.string.optional({ format: 'url', tld: false }),
 })

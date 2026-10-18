@@ -3,9 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title data-inertia>
-      AdonisJS
-    </title>
+    {{-- Sem <title> fixo aqui: toda página (landing e status pages) escreve o
+      seu pelo <Head>, e um segundo <title> no SSR fazia buscador e prévia de
+      link pegarem "AdonisJS". --}}
+    <meta name="theme-color" content="#080808" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 

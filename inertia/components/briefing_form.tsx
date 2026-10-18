@@ -1,5 +1,6 @@
 import type { FormEvent } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
+import { track } from '~/lib/analytics'
 import { useT } from '~/lib/i18n'
 
 type BriefingFormData = {
@@ -51,7 +52,10 @@ export default function BriefingForm() {
     e.preventDefault()
     form.post('/briefing', {
       preserveScroll: true,
-      onSuccess: () => form.reset(),
+      onSuccess: () => {
+        track('briefing_submitted')
+        form.reset()
+      },
     })
   }
 
